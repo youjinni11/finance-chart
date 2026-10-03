@@ -1,0 +1,303 @@
+[
+ {
+  "date": "1602-03-20",
+  "title": "네덜란드 동인도회사(VOC) 설립",
+  "desc": "세계 최초의 주식회사 형태. 암스테르담 증권거래소에서 주식 거래.",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "1609-01-31",
+  "title": "암스테르담 은행 설립",
+  "desc": "국제 무역 결제를 위한 공공 은행.",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "1637-02-03",
+  "title": "튤립 버블 붕괴",
+  "desc": "네덜란드 튤립 구근 가격 급등 후 폭락 (정점 시점은 1637년 2월 초로 알려져 있음).",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1694-07-27",
+  "title": "영란은행(Bank of England) 설립",
+  "desc": "왕실 칙허로 설립. 이후 영국 중앙은행 역할.",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "1717-09-21",
+  "title": "뉴턴, 금 가격 고정 (영국)",
+  "desc": "왕립 조폐국장 아이작 뉴턴 시기에 금 화폐 기준이 정해져 사실상 금본위제의 출발.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1720-05-21",
+  "title": "미시시피 버블 붕괴 (프랑스)",
+  "desc": "존 로의 은행과 미시시피 회사 주가·지폐 가치 폭락. 1720년 한 해 동안 진행.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1720-09-01",
+  "title": "남해회사 버블 붕괴 (영국)",
+  "desc": "남해회사 주가가 1720년 여름 정점 후 급락.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1792-04-02",
+  "title": "미국 주화법",
+  "desc": "달러를 화폐 단위로 정하고 금·은 복본위제 채택.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1797-02-26",
+  "title": "영란은행 태환 정지",
+  "desc": "나폴레옹 전쟁 중 은행권의 금 태환을 중단 (Bank Restriction Act).",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1821-05-01",
+  "title": "영국 금 태환 재개",
+  "desc": "금본위제로 복귀.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1844-07-19",
+  "title": "영국 은행법(Peel's Act)",
+  "desc": "은행권 발행을 금 보유와 연동하고 영란은행에 발권 권한을 집중.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1873-09-18",
+  "title": "1873년 공황",
+  "desc": "미국 철도 투자 붕괴로 시작된 장기 불황. 이 무렵 여러 나라가 금본위제로 이동.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1913-12-23",
+  "title": "미국 연방준비제도(Fed) 설립",
+  "desc": "연방준비법 서명.",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "1914-08-01",
+  "title": "제1차 세계대전, 금본위제 사실상 정지",
+  "desc": "주요국이 금 태환을 중단하거나 제한.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1925-04-28",
+  "title": "영국 금본위제 복귀",
+  "desc": "처칠 재무장관 시기, 전쟁 전 평가로 복귀.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1929-10-29",
+  "title": "월가 대폭락(대공황 시작)",
+  "desc": "'검은 화요일'. 1929년 10월 하순 주가 폭락.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1931-09-21",
+  "title": "영국 금본위제 이탈",
+  "desc": "파운드 태환 정지.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1933-04-05",
+  "title": "미국 민간 금 보유 제한",
+  "desc": "행정명령 6102호. 금화·금괴 제출 요구.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1934-01-30",
+  "title": "금준비법, 금 1온스=35달러",
+  "desc": "달러 금 가격을 20.67달러에서 35달러로 올림.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1944-07-22",
+  "title": "브레턴우즈 협정",
+  "desc": "달러를 금에 연동(온스당 35달러)하고 각국 통화를 달러에 고정. IMF·세계은행 창설.",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "1971-08-15",
+  "title": "닉슨 쇼크",
+  "desc": "미국이 달러의 금 태환을 중단.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1973-03-01",
+  "title": "변동환율제 이행",
+  "desc": "주요국이 고정환율을 포기하고 변동환율제로 전환 (1973년 초).",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1973-10-17",
+  "title": "제1차 석유 파동",
+  "desc": "아랍 산유국의 석유 금수 조치로 유가 급등.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1979-10-06",
+  "title": "볼커 긴축",
+  "desc": "연준 의장 볼커가 통화량 중심 긴축으로 전환, 기준금리 급등.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1985-09-22",
+  "title": "플라자 합의",
+  "desc": "달러 약세 유도를 위한 G5 합의.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "1987-10-19",
+  "title": "블랙 먼데이",
+  "desc": "하루 만에 미국 다우지수 약 22% 하락.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1992-09-16",
+  "title": "검은 수요일",
+  "desc": "영국이 유럽환율메커니즘(ERM)에서 탈퇴, 파운드 급락.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1997-07-02",
+  "title": "아시아 외환위기 시작",
+  "desc": "태국이 바트화 변동환율제로 전환.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1997-12-03",
+  "title": "한국 IMF 구제금융 합의",
+  "desc": "외환위기로 IMF와 구제금융에 합의.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1998-09-23",
+  "title": "LTCM 구제",
+  "desc": "미국 헤지펀드 LTCM이 뉴욕 연은 주도로 민간 구제.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "1999-01-01",
+  "title": "유로 출범",
+  "desc": "11개국이 단일 통화 유로 도입 (현금 유통은 2002년).",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "1999-05-06",
+  "title": "한국은행 기준금리 제도 도입",
+  "desc": "한국은행이 정책금리를 공식 기준금리로 운용하기 시작한 시점.",
+  "cat": "inst",
+  "verify": true
+ },
+ {
+  "date": "2000-03-10",
+  "title": "닷컴 버블 정점",
+  "desc": "나스닥 지수 최고점 이후 폭락 시작.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "2008-09-15",
+  "title": "리먼 브라더스 파산",
+  "desc": "글로벌 금융위기가 본격화.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "2009-01-03",
+  "title": "비트코인 제네시스 블록",
+  "desc": "사토시 나카모토가 첫 블록을 채굴.",
+  "cat": "crypto",
+  "verify": true
+ },
+ {
+  "date": "2012-07-26",
+  "title": "드라기 'whatever it takes'",
+  "desc": "ECB 총재가 유로를 지키겠다고 선언해 유럽 재정위기 진정.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "2015-07-30",
+  "title": "이더리움 메인넷 출시",
+  "desc": "",
+  "cat": "crypto",
+  "verify": true
+ },
+ {
+  "date": "2016-06-23",
+  "title": "브렉시트 국민투표",
+  "desc": "영국이 EU 탈퇴를 결정.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "2020-03-11",
+  "title": "코로나19 팬데믹 선언",
+  "desc": "세계 금융시장 급락, 주요국 중앙은행 긴급 완화.",
+  "cat": "crisis",
+  "verify": true
+ },
+ {
+  "date": "2022-03-16",
+  "title": "연준 금리 인상 시작",
+  "desc": "제로금리 종료, 급격한 긴축 사이클 시작.",
+  "cat": "policy",
+  "verify": true
+ },
+ {
+  "date": "2022-05-09",
+  "title": "테라·루나 붕괴",
+  "desc": "알고리즘 스테이블코인 UST가 달러 연동을 잃음 (5월 초중순).",
+  "cat": "crypto",
+  "verify": true
+ },
+ {
+  "date": "2022-11-11",
+  "title": "FTX 파산 신청",
+  "desc": "대형 암호화폐 거래소 FTX가 파산 보호 신청.",
+  "cat": "crypto",
+  "verify": true
+ },
+ {
+  "date": "2024-01-10",
+  "title": "미국 현물 비트코인 ETF 승인",
+  "desc": "SEC가 현물 비트코인 ETF 거래를 승인.",
+  "cat": "crypto",
+  "verify": true
+ }
+]

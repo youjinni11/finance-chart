@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>금융사 연표 차트</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="top">
+  <button id="btnSide" class="icon only-narrow" title="지표 선택">☰ 지표</button>
+  <div class="brand">금융사 연표 <span>1600 →</span></div>
+  <div class="ranges" id="ranges"></div>
+  <div class="zoom">
+    <button id="zoomOut" title="축소">−</button>
+    <button id="zoomIn" title="확대">+</button>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnNotes" class="icon">메모 목록</button>
+  <button id="btnTheme" class="icon" title="화면 색상 전환">테마</button>
+  <button id="btnAuth" class="icon primary">로그인</button>
+</header>
+
+<div id="app">
+  <aside id="side">
+    <div class="side-h">
+      <input id="search" type="search" placeholder="지표 검색">
+    </div>
+    <div id="series-list"></div>
+    <div class="side-foot">
+      <div>출처가 다른 자료를 이어 붙이지 않고 지표별로 따로 보여줍니다. 각 지표의 ⓘ 에서 출처를 확인하세요.</div>
+      <div id="gen"></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div id="chips"></div>
+    <div id="notice"></div>
+    <div id="chartwrap">
+      <canvas id="cv"></canvas>
+      <div id="tip"></div>
+      <div id="pop"></div>
+      <div id="empty"></div>
+    </div>
+    <div id="bar">
+      <label class="chk"><input type="checkbox" id="optRebase"> 시작=100 비교</label>
+      <label class="chk"><input type="checkbox" id="optLog"> 로그 눈금</label>
+      <label class="chk"><input type="checkbox" id="optEvents" checked> 역사 사건</label>
+      <label class="sel">메모 표시
+        <select id="optNotes">
+          <option value="own">메모별 설정</option>
+          <option value="dot">모두 점으로</option>
+          <option value="label">모두 글씨로</option>
+        </select>
+      </label>
+      <span class="hint">휠: 확대/축소 · 드래그: 이동 · 클릭: 메모 추가</span>
+    </div>
+  </main>
+</div>
+
+<div id="modal" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
