@@ -190,6 +190,28 @@ def ecos_base_rate():
     raise RuntimeError("ECOS 에서 기준금리를 가져오지 못함")
 
 
+def ecos_monthly(stat, item, start="196001"):
+    """한국은행 ECOS 월별 통계 1개 항목. (stat=통계표코드, item=항목코드)"""
+    key = os.environ.get("ECOS_API_KEY")
+    if not key:
+        raise SkipSource("ECOS_API_KEY 가 설정되지 않음")
+    rows, first, page = [], 1, 10000
+    while True:
+        url = (
+            f"https://ecos.bok.or.kr/api/StatisticSearch/{key}/json/kr/"
+            f"{first}/{first + page - 1}/{stat}/M/{start}/{END.strftime('%Y%m')}/{item}"
+        )
+        j = http_get(url).json()
+        if "StatisticSearch" not in j:
+            raise RuntimeError(f"ECOS 응답 오류: {scrub(j.get('RESULT', j))}")
+        blk = j["StatisticSearch"]
+        rows += blk["row"]
+        first += page
+        if first > int(blk["list_total_count"]):
+            break
+    return [(parse_date(r["TIME"]), r["DATA_VALUE"]) for r in rows if r.get("DATA_VALUE") not in (None, "")]
+
+
 def binance(symbol):
     bases = ["https://data-api.binance.vision", "https://api.binance.com", "https://api1.binance.com"]
     day_ms = 86400000
@@ -476,6 +498,9 @@ SERIES = [
     # 거시
     S("us_cpi", "미국 소비자물가지수 (CPI)", "macro", "index", lambda: fred("CPIAUCSL"), freq="monthly",
       source="FRED CPIAUCSL (미 노동통계국, 계절조정), 월별 1947~", url=FRED_URL + "CPIAUCSL", order=1),
+    S("kr_cpi", "한국 소비자물가지수 (CPI, 총지수)", "macro", "index", lambda: ecos_monthly("901Y009", "0"), freq="monthly",
+      source="한국은행 ECOS 901Y009 / 0 (소비자물가지수 총지수, 통계청 작성), 월별 1965~", url="https://ecos.bok.or.kr/",
+      caution="통계표·항목 코드(901Y009/0)와 기준연도(2020=100 추정)는 첫 수집 결과로 검증 필요", order=2),
     # 환율 (1달러당 각국 통화 = USD 기준 환산 후 화면에서 교차환율 계산)
     S("fx_KRW", "원 (1달러당)", "fx", "perUSD", lambda: fred("DEXKOUS"), hidden=True,
       source="FRED DEXKOUS (연준 H.10), 일별 1981~", url=FRED_URL + "DEXKOUS"),
