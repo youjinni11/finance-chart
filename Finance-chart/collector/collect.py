@@ -267,41 +267,54 @@ def cn_lpr(col):
 
 
 def sse_composite():
-    """상하이 종합지수(000001) 일별 종가. 출처를 차례로 시도: 동방재부 -> 야후 -> Stooq."""
+    """상하이 종합지수(000001) 일별 종가. 출처를 차례로 시도: 동방재부 -> 시나 -> 텐센트 -> 야후."""
     errs = []
-    try:
+    BR = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+          "Referer": "https://quote.eastmoney.com/", "Accept": "*/*"}
+
+    def em(host):
         j = http_get(
-            "https://push2his.eastmoney.com/api/qt/stock/kline/get",
+            f"https://{host}/api/qt/stock/kline/get",
             params={"secid": "1.000001", "ut": "7eea3edcaed734bea9cbfc24409ed989", "fields1": "f1,f2,f3,f4,f5,f6",
                     "fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61", "klt": "101", "fqt": "0",
                     "beg": "19901219", "end": END.strftime("%Y%m%d")},
+            headers=BR,
         ).json()
-        pts = [(parse_date(k.split(",")[0]), k.split(",")[2]) for k in j["data"]["klines"]]
-        if len(pts) > 1000:
-            return pts, "동방재부(Eastmoney) 일봉 종가 / secid 1.000001"
-        errs.append("동방재부: 자료가 너무 적음")
-    except Exception as e:  # noqa: BLE001
-        errs.append("동방재부: %s" % scrub(e))
-    try:
+        return [(parse_date(k.split(",")[0]), k.split(",")[2]) for k in j["data"]["klines"]], f"동방재부(Eastmoney) {host} 일봉 종가 000001"
+
+    def sina():
+        r = http_get("https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData",
+                     params={"symbol": "sh000001", "scale": "240", "ma": "no", "datalen": "10000"},
+                     headers={"Referer": "https://finance.sina.com.cn/", "User-Agent": BR["User-Agent"]})
+        rows = json.loads(r.text)
+        return [(parse_date(x["day"]), x["close"]) for x in rows], "시나 재경(Sina Finance) sh000001 일봉 종가"
+
+    def tencent():
+        r = http_get("https://web.ifzq.gtimg.cn/appstock/app/fqkline/get",
+                     params={"param": "sh000001,day,1990-12-19,2026-12-31,10000,"},
+                     headers={"Referer": "https://gu.qq.com/", "User-Agent": BR["User-Agent"]})
+        j = r.json()["data"]["sh000001"]
+        rows = j.get("day") or j.get("qfqday")
+        return [(parse_date(x[0]), x[2]) for x in rows], "텐센트 증권(Tencent) sh000001 일봉 종가"
+
+    def yahoo():
         j = http_get("https://query1.finance.yahoo.com/v8/finance/chart/000001.SS",
-                     params={"range": "max", "interval": "1d"}).json()
+                     params={"period1": "0", "period2": str(int(time.time())), "interval": "1d"},
+                     headers={"User-Agent": BR["User-Agent"]}).json()
         r = j["chart"]["result"][0]
-        pts = [(dt.datetime.fromtimestamp(t, dt.timezone.utc).date(), c)
-               for t, c in zip(r["timestamp"], r["indicators"]["quote"][0]["close"]) if c is not None]
-        if len(pts) > 1000:
-            return pts, "야후 파이낸스 000001.SS 일봉 종가"
-        errs.append("야후: 자료가 너무 적음")
-    except Exception as e:  # noqa: BLE001
-        errs.append("야후: %s" % scrub(e))
-    try:
-        txt = http_get("https://stooq.com/q/d/l/?s=%5Eshc&i=d").text
-        rows = [l.split(",") for l in txt.strip().splitlines()[1:] if l.count(",") >= 4]
-        pts = [(parse_date(r[0]), r[4]) for r in rows]
-        if len(pts) > 1000:
-            return pts, "Stooq ^shc 일봉 종가"
-        errs.append("Stooq: 자료가 너무 적음")
-    except Exception as e:  # noqa: BLE001
-        errs.append("Stooq: %s" % scrub(e))
+        return [(dt.datetime.fromtimestamp(t, dt.timezone.utc).date(), c)
+                for t, c in zip(r["timestamp"], r["indicators"]["quote"][0]["close"]) if c is not None], "야후 파이낸스 000001.SS 일봉 종가"
+
+    tries = [("동방재부1", lambda: em("push2his.eastmoney.com")), ("동방재부2", lambda: em("29.push2his.eastmoney.com")),
+             ("시나", sina), ("텐센트", tencent), ("야후", yahoo)]
+    for name, fn in tries:
+        try:
+            pts, note = fn()
+            if len(pts) > 1000:
+                return pts, note
+            errs.append(f"{name}: 자료 {len(pts)}개뿐")
+        except Exception as e:  # noqa: BLE001
+            errs.append(f"{name}: {scrub(e)}"[:160])
     raise RuntimeError("상하이 종합지수 수집 실패 - " + " / ".join(errs))
 
 
@@ -646,7 +659,7 @@ SERIES = [
       source="한국은행 ECOS 802Y001 (주식시장 일별 - KOSDAQ 종가), 일별 2003.1~", url="https://ecos.bok.or.kr/",
       caution="통계표 802Y001 은 항목 이름으로 자동 선택 - ECOS 일별 자료가 2003년부터라 그 이전(1996~2002)은 없음. 값은 한국거래소 자료와 대조 필요", order=2),
     S("sse_composite", "상하이 종합지수", "stock", "pt", sse_composite,
-      source="상하이증권거래소 종합지수(000001) 일별 종가 - 동방재부(Eastmoney)에서 수집, 실패 시 야후·Stooq 대체. 1990.12~",
+      source="상하이증권거래소 종합지수(000001) 일별 종가 - 동방재부·시나·텐센트·야후 중 되는 곳에서 수집. 1990.12~",
       url="https://www.sse.com.cn/market/sseindex/indexlist/", caution="가격지수. 거래소가 아닌 재전송 출처라 거래소 공표값과 대조 필요. 1990-12-19 = 100 에서 시작", order=3),
     # 거시
     S("us_cpi", "미국 소비자물가지수 (CPI)", "macro", "index", lambda: fred("CPIAUCSL"), freq="monthly",
