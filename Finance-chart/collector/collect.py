@@ -244,6 +244,67 @@ def ecos_daily_by_name(stat, name_pat, exclude_pat, start="19960101"):
     return pts, f"통계표 {stat} / 항목 {item['ITEM_CODE']} ({item['ITEM_NAME']})"
 
 
+def cn_lpr(col):
+    """중국 대출우대금리(LPR). 동방재부(Eastmoney) 데이터센터 RPTA_WEB_RATE (인민은행 공표값 재전송).
+    col = 'LPR1Y'(1년물) 또는 'LPR5Y'(5년 초과). 값이 없는 날짜는 건너뜀."""
+    pts, page = [], 1
+    while True:
+        j = http_get(
+            "https://datacenter-web.eastmoney.com/api/data/v1/get",
+            params={"reportName": "RPTA_WEB_RATE", "columns": "ALL", "sortColumns": "TRADE_DATE", "sortTypes": "-1",
+                    "token": "894050c76af8597a853f5b408b759f5d", "pageNumber": page, "pageSize": 500},
+        ).json()
+        res = j.get("result")
+        if not res or not res.get("data"):
+            raise RuntimeError("LPR 응답에 데이터가 없음: %s" % scrub(str(j)[:200]))
+        for r in res["data"]:
+            if r.get(col) not in (None, ""):
+                pts.append((parse_date(r["TRADE_DATE"]), r[col]))
+        if page >= int(res.get("pages", 1)):
+            break
+        page += 1
+    return pts, f"동방재부 데이터센터 RPTA_WEB_RATE / {col}"
+
+
+def sse_composite():
+    """상하이 종합지수(000001) 일별 종가. 출처를 차례로 시도: 동방재부 -> 야후 -> Stooq."""
+    errs = []
+    try:
+        j = http_get(
+            "https://push2his.eastmoney.com/api/qt/stock/kline/get",
+            params={"secid": "1.000001", "ut": "7eea3edcaed734bea9cbfc24409ed989", "fields1": "f1,f2,f3,f4,f5,f6",
+                    "fields2": "f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61", "klt": "101", "fqt": "0",
+                    "beg": "19901219", "end": END.strftime("%Y%m%d")},
+        ).json()
+        pts = [(parse_date(k.split(",")[0]), k.split(",")[2]) for k in j["data"]["klines"]]
+        if len(pts) > 1000:
+            return pts, "동방재부(Eastmoney) 일봉 종가 / secid 1.000001"
+        errs.append("동방재부: 자료가 너무 적음")
+    except Exception as e:  # noqa: BLE001
+        errs.append("동방재부: %s" % scrub(e))
+    try:
+        j = http_get("https://query1.finance.yahoo.com/v8/finance/chart/000001.SS",
+                     params={"range": "max", "interval": "1d"}).json()
+        r = j["chart"]["result"][0]
+        pts = [(dt.datetime.fromtimestamp(t, dt.timezone.utc).date(), c)
+               for t, c in zip(r["timestamp"], r["indicators"]["quote"][0]["close"]) if c is not None]
+        if len(pts) > 1000:
+            return pts, "야후 파이낸스 000001.SS 일봉 종가"
+        errs.append("야후: 자료가 너무 적음")
+    except Exception as e:  # noqa: BLE001
+        errs.append("야후: %s" % scrub(e))
+    try:
+        txt = http_get("https://stooq.com/q/d/l/?s=%5Eshc&i=d").text
+        rows = [l.split(",") for l in txt.strip().splitlines()[1:] if l.count(",") >= 4]
+        pts = [(parse_date(r[0]), r[4]) for r in rows]
+        if len(pts) > 1000:
+            return pts, "Stooq ^shc 일봉 종가"
+        errs.append("Stooq: 자료가 너무 적음")
+    except Exception as e:  # noqa: BLE001
+        errs.append("Stooq: %s" % scrub(e))
+    raise RuntimeError("상하이 종합지수 수집 실패 - " + " / ".join(errs))
+
+
 def silver_monthly():
     """세계은행 Pink Sheet(CMO-Historical-Data-Monthly.xlsx) 의 은(Silver, $/toz) 월평균, 1960~.
     파일 주소에 해시가 있어 매달 바뀌므로, 원자재 페이지에서 현재 링크를 찾아 받는다."""
@@ -549,6 +610,14 @@ SERIES = [
     S("boj_rate", "일본 단기금리 (콜금리)", "rates", "%", lambda: fred("IRSTCI01JPM156N"), freq="monthly",
       source="FRED IRSTCI01JPM156N (OECD, 일본 콜머니 금리), 월별", url=FRED_URL + "IRSTCI01JPM156N",
       caution="일본은행 정책금리 그 자체가 아님. 시리즈 코드 확인 필요", order=7),
+    S("cn_lpr_1y", "중국 대출우대금리 LPR (1년)", "rates", "%", lambda: cn_lpr("LPR1Y"), kind="step",
+      source="동방재부(Eastmoney) 데이터센터 RPTA_WEB_RATE (중국 인민은행 공표 LPR 재전송), 2013.10~",
+      url="https://www.chinamoney.com.cn/chinese/bkcurvlpr/",
+      caution="비공식 재전송 출처 1곳 - 인민은행·중국화폐망 공표값과 대조 필요. 2019.8 이전은 옛 산정 방식(은행 호가 평균)이라 성격이 다름", order=8),
+    S("cn_lpr_5y", "중국 대출우대금리 LPR (5년 초과)", "rates", "%", lambda: cn_lpr("LPR5Y"), kind="step",
+      source="동방재부(Eastmoney) 데이터센터 RPTA_WEB_RATE (중국 인민은행 공표 LPR 재전송), 2019.8~",
+      url="https://www.chinamoney.com.cn/chinese/bkcurvlpr/",
+      caution="비공식 재전송 출처 1곳 - 인민은행·중국화폐망 공표값과 대조 필요", order=9),
     # 금
     S("gold_usd", "금 가격 (USD/온스, 월별)", "metals", "USD", gold_monthly, freq="monthly",
       source="datasets/gold-prices: 1833~1959 Timothy Green, 1960~ 세계은행 Commodity Markets(월 평균)",
@@ -576,6 +645,9 @@ SERIES = [
     S("kosdaq", "코스닥 지수", "stock", "pt", lambda: ecos_daily_by_name("802Y001", r"KOSDAQ|코스닥", r"200|150|시가|거래|배당|우량|스타", "19960701"),
       source="한국은행 ECOS 802Y001 (주식시장 일별 - KOSDAQ 종가), 일별 2003.1~", url="https://ecos.bok.or.kr/",
       caution="통계표 802Y001 은 항목 이름으로 자동 선택 - ECOS 일별 자료가 2003년부터라 그 이전(1996~2002)은 없음. 값은 한국거래소 자료와 대조 필요", order=2),
+    S("sse_composite", "상하이 종합지수", "stock", "pt", sse_composite,
+      source="상하이증권거래소 종합지수(000001) 일별 종가 - 동방재부(Eastmoney)에서 수집, 실패 시 야후·Stooq 대체. 1990.12~",
+      url="https://www.sse.com.cn/market/sseindex/indexlist/", caution="가격지수. 거래소가 아닌 재전송 출처라 거래소 공표값과 대조 필요. 1990-12-19 = 100 에서 시작", order=3),
     # 거시
     S("us_cpi", "미국 소비자물가지수 (CPI)", "macro", "index", lambda: fred("CPIAUCSL"), freq="monthly",
       source="FRED CPIAUCSL (미 노동통계국, 계절조정), 월별 1947~", url=FRED_URL + "CPIAUCSL", order=1),
