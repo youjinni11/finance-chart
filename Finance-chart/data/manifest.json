@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T08:22:02+00:00",
+ "generated": "2026-10-03T08:27:00+00:00",
  "end": "2026-10-02",
  "series": [
   {
@@ -67,8 +67,12 @@
    "caution": "학술 재구성 추정치 / 엑셀 열 자동 탐색 방식 - 원본과 대조 필요",
    "hidden": false,
    "order": 4,
-   "status": "error",
-   "message": "네덜란드 열에서 값을 읽지 못함"
+   "status": "ok",
+   "start": "1600-07-01",
+   "end": "2018-07-01",
+   "n": 413,
+   "updated": "2026-10-03",
+   "detail": "시트 'IV. Country level, 1310-2018' / 열 32: Nominal, not averaged | Holland"
   },
   {
    "id": "us10y",
@@ -133,25 +137,6 @@
    "n": 2325,
    "updated": "2026-10-03",
    "detail": null
-  },
-  {
-   "id": "gold_gbp",
-   "name": "금 가격 (GBP/온스, 장기)",
-   "group": "metals",
-   "unit": "GBP",
-   "kind": "line",
-   "freq": "annual",
-   "source": "영국은행 'A Millennium of Macroeconomic Data for the UK'",
-   "url": "https://www.bankofengland.co.uk/statistics/research-datasets",
-   "caution": "엑셀 열 자동 탐색 방식 - 단위·시작연도를 원본과 대조해 주세요",
-   "hidden": false,
-   "order": 2,
-   "status": "ok",
-   "start": "1871-07-01",
-   "end": "1920-07-01",
-   "n": 50,
-   "updated": "2026-10-03",
-   "detail": "시트 'A13. GDP(E) contributions' / 열 'Adjustments to trade data made in Feinstein and Pollard (198'"
   },
   {
    "id": "wti",
