@@ -12,7 +12,7 @@ const dayToYMD = (d) => { const t = new Date(d * DAY); return [t.getUTCFullYear(
 const pad2 = (n) => String(n).padStart(2, '0');
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const PALETTE = ['#4ea8de', '#f4a261', '#2ec4b6', '#e76f51', '#b794f4', '#e9c46a', '#80ed99', '#ff6b9d', '#90be6d', '#c77dff', '#48cae4', '#ffb703', '#adb5bd', '#fb8500', '#06d6a0', '#ef476f'];
-const GROUPS = [['rates', '금리'], ['metals', '금 · 원자재'], ['crypto', '암호화폐'], ['fx', '환율'], ['macro', '물가 · 거시']];
+const GROUPS = [['rates', '금리'], ['metals', '금 · 원자재'], ['crypto', '암호화폐'], ['fx', '환율'], ['stock', '주가지수'], ['macro', '물가 · 거시']];
 const CUR = { USD: ['달러', '$'], KRW: ['원', '₩'], JPY: ['엔', '¥'], CNY: ['위안', 'CN¥'], EUR: ['유로', '€'], GBP: ['파운드', '£'] };
 const FREQ = { daily: '일별', monthly: '월별', annual: '연 단위', mixed: '연·일 혼합' };
 const RANGES = [['최대', 'max'], ['100년', 100], ['50년', 50], ['10년', 10], ['5년', 5], ['1년', 1], ['6개월', 0.5], ['1개월', 1 / 12], ['맞춤', 'fit']];
@@ -304,7 +304,7 @@ function render() {
   renderChips(list);
   highlightRange();
 }
-function unitLabel(u) { return u === '%' ? '금리 (%)' : u === 'USD' ? '달러 ($)' : u === 'KRW' ? '원 (₩)' : u === 'GBP' ? '파운드 (£)' : u === 'index' ? '지수' : (CUR[u] ? CUR[u][0] : u); }
+function unitLabel(u) { return u === '%' ? '금리 (%)' : u === 'USD' ? '달러 ($)' : u === 'KRW' ? '원 (₩)' : u === 'GBP' ? '파운드 (£)' : u === 'index' ? '지수' : u === 'pt' ? '주가지수 (pt)' : (CUR[u] ? CUR[u][0] : u); }
 
 // 시리즈의 데이터가 hover 날짜를 "덮는지" (마지막 값에서 너무 멀리 떨어지면 값을 보여주지 않는다)
 function inCoverage(s, d, i) {
