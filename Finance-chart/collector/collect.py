@@ -47,7 +47,7 @@ def log(*a):
     print(scrub(" ".join(str(x) for x in a)), flush=True)
 
 
-def http_get(url, params=None, headers=None, retries=3, timeout=90, stream=False):
+def http_get(url, params=None, headers=None, retries=2, timeout=(10, 45), stream=False):
     h = {"User-Agent": UA}
     if headers:
         h.update(headers)
@@ -110,8 +110,24 @@ def clean(points):
 
 
 # ---------------------------------------------------------------- 출처별 수집 함수
+_fred_fail = [0]
+
+
 def fred(series_id, invert=False):
     key = os.environ.get("FRED_API_KEY")
+    pts = []
+    if not key and _fred_fail[0] >= 2:
+        raise SkipSource("FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)")
+    try:
+        pts = _fred_fetch(series_id, key)
+    except Exception:
+        _fred_fail[0] += 1
+        raise
+    _fred_fail[0] = 0
+    return _fred_convert(pts, invert)
+
+
+def _fred_fetch(series_id, key):
     pts = []
     if key:
         r = http_get(
@@ -127,6 +143,10 @@ def fred(series_id, invert=False):
             a = ln.split(",")
             if len(a) >= 2:
                 pts.append((parse_date(a[0]), a[1]))
+    return pts
+
+
+def _fred_convert(pts, invert):
     out = []
     for d, v in pts:
         try:
@@ -238,7 +258,7 @@ def gold_monthly():
 
 # ---- 엑셀(영국은행 장기통계, Schmelzing 장기금리) 휴리스틱 추출
 def download_file(url, suffix):
-    r = http_get(url, stream=True, timeout=300)
+    r = http_get(url, stream=True, timeout=(10, 120))
     fd, path = tempfile.mkstemp(suffix=suffix)
     with os.fdopen(fd, "wb") as f:
         for chunk in r.iter_content(1 << 20):
