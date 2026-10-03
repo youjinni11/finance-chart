@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T08:27:00+00:00",
+ "generated": "2026-10-03T08:33:57+00:00",
  "end": "2026-10-02",
  "series": [
   {
@@ -14,8 +14,12 @@
    "caution": null,
    "hidden": false,
    "order": 1,
-   "status": "error",
-   "message": "요청 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=45)"
+   "status": "ok",
+   "start": "1954-07-01",
+   "end": "2026-10-01",
+   "n": 26391,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "bok_base",
@@ -86,8 +90,12 @@
    "caution": null,
    "hidden": false,
    "order": 5,
-   "status": "error",
-   "message": "요청 실패: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=45)"
+   "status": "ok",
+   "start": "1962-01-02",
+   "end": "2026-10-01",
+   "n": 16173,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "ecb_rate",
@@ -101,8 +109,12 @@
    "caution": "시리즈 코드 확인 필요",
    "hidden": false,
    "order": 6,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1999-01-01",
+   "end": "2026-10-02",
+   "n": 10137,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "boj_rate",
@@ -116,8 +128,12 @@
    "caution": "일본은행 정책금리 그 자체가 아님. 시리즈 코드 확인 필요",
    "hidden": false,
    "order": 7,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1985-07-01",
+   "end": "2026-08-01",
+   "n": 494,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "gold_usd",
@@ -150,8 +166,12 @@
    "caution": null,
    "hidden": false,
    "order": 3,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1986-01-02",
+   "end": "2026-09-29",
+   "n": 9512,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "btc_usd",
@@ -241,8 +261,12 @@
    "caution": null,
    "hidden": false,
    "order": 1,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1947-01-01",
+   "end": "2026-08-01",
+   "n": 955,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "fx_KRW",
@@ -256,8 +280,12 @@
    "caution": null,
    "hidden": true,
    "order": 0,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1981-04-13",
+   "end": "2026-09-25",
+   "n": 11362,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "fx_JPY",
@@ -271,8 +299,12 @@
    "caution": null,
    "hidden": true,
    "order": 0,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1971-01-04",
+   "end": "2026-09-25",
+   "n": 13970,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "fx_CNY",
@@ -286,8 +318,12 @@
    "caution": null,
    "hidden": true,
    "order": 0,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1981-01-02",
+   "end": "2026-09-25",
+   "n": 11416,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "fx_EUR",
@@ -301,8 +337,12 @@
    "caution": "1999년 유로 출범 이전 자료 없음",
    "hidden": true,
    "order": 0,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1999-01-04",
+   "end": "2026-09-25",
+   "n": 6955,
+   "updated": "2026-10-03",
+   "detail": null
   },
   {
    "id": "fx_GBP",
@@ -316,8 +356,12 @@
    "caution": null,
    "hidden": true,
    "order": 0,
-   "status": "skipped",
-   "message": "FRED 에 연속으로 접속하지 못해 건너뜀 (FRED_API_KEY 등록을 권장)"
+   "status": "ok",
+   "start": "1971-01-04",
+   "end": "2026-09-25",
+   "n": 13976,
+   "updated": "2026-10-03",
+   "detail": null
   }
  ]
 }
