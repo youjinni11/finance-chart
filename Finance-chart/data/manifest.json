@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T12:09:53+00:00",
+ "generated": "2026-10-03T13:32:39+00:00",
  "end": "2026-10-02",
  "series": [
   {
@@ -267,6 +267,44 @@
    "n": 3292,
    "updated": "2026-10-03",
    "detail": null
+  },
+  {
+   "id": "nasdaq",
+   "name": "나스닥 종합지수",
+   "group": "stock",
+   "unit": "pt",
+   "kind": "line",
+   "freq": "daily",
+   "source": "FRED NASDAQCOM (NASDAQ Composite Index, 종가), 일별 1971~",
+   "url": "https://fred.stlouisfed.org/series/NASDAQCOM",
+   "caution": "가격지수(배당 제외). 1971-02-05 = 100 에서 시작한 지수",
+   "hidden": false,
+   "order": 1,
+   "status": "ok",
+   "start": "1971-02-05",
+   "end": "2026-10-02",
+   "n": 14033,
+   "updated": "2026-10-03",
+   "detail": null
+  },
+  {
+   "id": "kosdaq",
+   "name": "코스닥 지수",
+   "group": "stock",
+   "unit": "pt",
+   "kind": "line",
+   "freq": "daily",
+   "source": "한국은행 ECOS 802Y001 (주식시장 일별 - KOSDAQ 종가), 1996.7~",
+   "url": "https://ecos.bok.or.kr/",
+   "caution": "통계표 802Y001 은 항목 이름으로 자동 선택 - 첫 수집 후 어떤 항목이 쓰였는지(detail)와 값 확인 필요. 1996-07-01 = 1,000 기준",
+   "hidden": false,
+   "order": 2,
+   "status": "ok",
+   "start": "2003-01-02",
+   "end": "2026-10-02",
+   "n": 5862,
+   "updated": "2026-10-03",
+   "detail": "통계표 802Y001 / 항목 0089000 (KOSDAQ지수)"
   },
   {
    "id": "us_cpi",
