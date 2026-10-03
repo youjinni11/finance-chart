@@ -56,7 +56,7 @@ jobs:
       - name: 사이트 파일 모으기
         run: |
           mkdir _site
-          cp index.html app.js style.css config.js events.json offices.json _site/
+          cp index.html app.js i18n.js i18n_data.json style.css config.js events.json offices.json _site/
           cp -r data _site/data
 
       - uses: actions/configure-pages@v5
