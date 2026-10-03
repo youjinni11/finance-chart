@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T14:24:49+00:00",
+ "generated": "2026-10-03T14:29:11+00:00",
  "end": "2026-10-02",
  "series": [
   {
@@ -339,7 +339,7 @@
    "hidden": false,
    "order": 2,
    "status": "stale",
-   "message": "요청 실패: HTTPSConnectionPool(host='ecos.bok.or.kr', port=443): Max retries exceeded with url: /api/StatisticItemList/***/json/kr/1/200/802Y001 (Caused by ConnectTimeoutError(<HTTPSConnection(host='ecos.bok.or.kr', port=443) at 0x7fd1e5729ac0>, 'Connection to ecos.bok.or.kr timed out. (connect timeout=10)'))",
+   "message": "요청 실패: HTTPSConnectionPool(host='ecos.bok.or.kr', port=443): Max retries exceeded with url: /api/StatisticItemList/***/json/kr/1/200/802Y001 (Caused by ConnectTimeoutError(<HTTPSConnection(host='ecos.bok.or.kr', port=443) at 0x7f81ef5c21b0>, 'Connection to ecos.bok.or.kr timed out. (connect timeout=10)'))",
    "start": "2003-01-02",
    "end": "2026-10-02",
    "n": 5862,
@@ -353,13 +353,17 @@
    "unit": "pt",
    "kind": "line",
    "freq": "daily",
-   "source": "상하이증권거래소 종합지수(000001) 일별 종가 - 동방재부(Eastmoney)에서 수집, 실패 시 야후·Stooq 대체. 1990.12~",
+   "source": "상하이증권거래소 종합지수(000001) 일별 종가 - 동방재부·시나·텐센트·야후 중 되는 곳에서 수집. 1990.12~",
    "url": "https://www.sse.com.cn/market/sseindex/indexlist/",
    "caution": "가격지수. 거래소가 아닌 재전송 출처라 거래소 공표값과 대조 필요. 1990-12-19 = 100 에서 시작",
    "hidden": false,
    "order": 3,
-   "status": "error",
-   "message": "상하이 종합지수 수집 실패 - 동방재부: 요청 실패: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) / 야후: 자료가 너무 적음 / Stooq: 날짜 형식을 알 수 없음: (async()=>{const c=\"AAAAAGrBEBRB4mi0TkoUBz_5NKaRdlrXrLedtQSlJA5aJmpWESEIh12ZRfA\""
+   "status": "ok",
+   "start": "1990-12-19",
+   "end": "2026-09-30",
+   "n": 8736,
+   "updated": "2026-10-03",
+   "detail": "동방재부(Eastmoney) push2his.eastmoney.com 일봉 종가 000001"
   },
   {
    "id": "us_cpi",
@@ -393,7 +397,7 @@
    "hidden": false,
    "order": 2,
    "status": "stale",
-   "message": "요청 실패: HTTPSConnectionPool(host='ecos.bok.or.kr', port=443): Max retries exceeded with url: /api/StatisticSearch/***/json/kr/1/10000/901Y009/M/196001/202610/0 (Caused by ConnectTimeoutError(<HTTPSConnection(host='ecos.bok.or.kr', port=443) at 0x7fd1e575fe30>, 'Connection to ecos.bok.or.kr timed out. (connect timeout=10)'))",
+   "message": "요청 실패: HTTPSConnectionPool(host='ecos.bok.or.kr', port=443): Max retries exceeded with url: /api/StatisticSearch/***/json/kr/1/10000/901Y009/M/196001/202610/0 (Caused by ConnectTimeoutError(<HTTPSConnection(host='ecos.bok.or.kr', port=443) at 0x7f81efd2cd40>, 'Connection to ecos.bok.or.kr timed out. (connect timeout=10)'))",
    "start": "1965-01-01",
    "end": "2026-08-01",
    "n": 740,
