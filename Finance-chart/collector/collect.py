@@ -574,8 +574,8 @@ SERIES = [
       source="FRED NASDAQCOM (NASDAQ Composite Index, 종가), 일별 1971~", url=FRED_URL + "NASDAQCOM",
       caution="가격지수(배당 제외). 1971-02-05 = 100 에서 시작한 지수", order=1),
     S("kosdaq", "코스닥 지수", "stock", "pt", lambda: ecos_daily_by_name("802Y001", r"KOSDAQ|코스닥", r"200|150|시가|거래|배당|우량|스타", "19960701"),
-      source="한국은행 ECOS 802Y001 (주식시장 일별 - KOSDAQ 종가), 1996.7~", url="https://ecos.bok.or.kr/",
-      caution="통계표 802Y001 은 항목 이름으로 자동 선택 - 첫 수집 후 어떤 항목이 쓰였는지(detail)와 값 확인 필요. 1996-07-01 = 1,000 기준", order=2),
+      source="한국은행 ECOS 802Y001 (주식시장 일별 - KOSDAQ 종가), 일별 2003.1~", url="https://ecos.bok.or.kr/",
+      caution="통계표 802Y001 은 항목 이름으로 자동 선택 - ECOS 일별 자료가 2003년부터라 그 이전(1996~2002)은 없음. 값은 한국거래소 자료와 대조 필요", order=2),
     # 거시
     S("us_cpi", "미국 소비자물가지수 (CPI)", "macro", "index", lambda: fred("CPIAUCSL"), freq="monthly",
       source="FRED CPIAUCSL (미 노동통계국, 계절조정), 월별 1947~", url=FRED_URL + "CPIAUCSL", order=1),
