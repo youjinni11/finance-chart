@@ -212,6 +212,38 @@ def ecos_monthly(stat, item, start="196001"):
     return [(parse_date(r["TIME"]), r["DATA_VALUE"]) for r in rows if r.get("DATA_VALUE") not in (None, "")]
 
 
+def ecos_daily_by_name(stat, name_pat, exclude_pat, start="19960101"):
+    """한국은행 ECOS 일별 통계. 항목 코드를 이름으로 찾는다(코드 오류 방지). 반환: (자료, 사용한 항목 설명)"""
+    key = os.environ.get("ECOS_API_KEY")
+    if not key:
+        raise SkipSource("ECOS_API_KEY 가 설정되지 않음")
+    j = http_get(f"https://ecos.bok.or.kr/api/StatisticItemList/{key}/json/kr/1/200/{stat}").json()
+    if "StatisticItemList" not in j:
+        raise RuntimeError(f"ECOS 항목목록 오류: {scrub(j.get('RESULT', j))}")
+    cands = [r for r in j["StatisticItemList"]["row"]
+             if re.search(name_pat, r["ITEM_NAME"], re.I) and not re.search(exclude_pat, r["ITEM_NAME"], re.I)]
+    if not cands:
+        raise RuntimeError("ECOS 항목목록에서 '%s' 를 찾지 못함" % name_pat)
+    cands.sort(key=lambda r: len(r["ITEM_NAME"]))
+    item = cands[0]
+    rows, first, page = [], 1, 10000
+    while True:
+        url = (
+            f"https://ecos.bok.or.kr/api/StatisticSearch/{key}/json/kr/"
+            f"{first}/{first + page - 1}/{stat}/D/{start}/{END.strftime('%Y%m%d')}/{item['ITEM_CODE']}"
+        )
+        j = http_get(url).json()
+        if "StatisticSearch" not in j:
+            raise RuntimeError(f"ECOS 응답 오류: {scrub(j.get('RESULT', j))}")
+        blk = j["StatisticSearch"]
+        rows += blk["row"]
+        first += page
+        if first > int(blk["list_total_count"]):
+            break
+    pts = [(parse_date(r["TIME"]), r["DATA_VALUE"]) for r in rows if r.get("DATA_VALUE") not in (None, "")]
+    return pts, f"통계표 {stat} / 항목 {item['ITEM_CODE']} ({item['ITEM_NAME']})"
+
+
 def silver_monthly():
     """세계은행 Pink Sheet(CMO-Historical-Data-Monthly.xlsx) 의 은(Silver, $/toz) 월평균, 1960~.
     파일 주소에 해시가 있어 매달 바뀌므로, 원자재 페이지에서 현재 링크를 찾아 받는다."""
@@ -537,6 +569,13 @@ SERIES = [
       source="업비트 KRW-BTC 일봉 종가(UTC 기준 일봉)", url="https://upbit.com/exchange?code=CRIX.UPBIT.KRW-BTC", order=3),
     S("eth_krw", "이더리움 (원, 업비트)", "crypto", "KRW", lambda: upbit("KRW-ETH"),
       source="업비트 KRW-ETH 일봉 종가(UTC 기준 일봉)", url="https://upbit.com/exchange?code=CRIX.UPBIT.KRW-ETH", order=4),
+    # 주가지수
+    S("nasdaq", "나스닥 종합지수", "stock", "pt", lambda: fred("NASDAQCOM"),
+      source="FRED NASDAQCOM (NASDAQ Composite Index, 종가), 일별 1971~", url=FRED_URL + "NASDAQCOM",
+      caution="가격지수(배당 제외). 1971-02-05 = 100 에서 시작한 지수", order=1),
+    S("kosdaq", "코스닥 지수", "stock", "pt", lambda: ecos_daily_by_name("802Y001", r"KOSDAQ|코스닥", r"200|150|시가|거래|배당|우량|스타", "19960701"),
+      source="한국은행 ECOS 802Y001 (주식시장 일별 - KOSDAQ 종가), 1996.7~", url="https://ecos.bok.or.kr/",
+      caution="통계표 802Y001 은 항목 이름으로 자동 선택 - 첫 수집 후 어떤 항목이 쓰였는지(detail)와 값 확인 필요. 1996-07-01 = 1,000 기준", order=2),
     # 거시
     S("us_cpi", "미국 소비자물가지수 (CPI)", "macro", "index", lambda: fred("CPIAUCSL"), freq="monthly",
       source="FRED CPIAUCSL (미 노동통계국, 계절조정), 월별 1947~", url=FRED_URL + "CPIAUCSL", order=1),
