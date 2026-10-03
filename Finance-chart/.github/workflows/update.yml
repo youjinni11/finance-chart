@@ -1,0 +1,65 @@
+name: 데이터 갱신 및 배포
+
+on:
+  schedule:
+    - cron: "30 21 * * *"   # 매일 한국시간 06:30 (UTC 21:30)
+  workflow_dispatch:         # Actions 탭에서 수동 실행
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 필요한 파이썬 패키지 설치
+        run: pip install requests openpyxl
+
+      - name: 데이터 수집
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+        run: python collector/collect.py
+
+      - name: 수집한 데이터를 저장소에 기록
+        run: |
+          git config user.name "finance-chart-bot"
+          git config user.email "finance-chart-bot@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "변경된 데이터 없음"
+          else
+            git commit -m "data: 일일 갱신 $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: 사이트 파일 모으기
+        run: |
+          mkdir _site
+          cp index.html app.js style.css config.js events.json _site/
+          cp -r data _site/data
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: GitHub Pages 에 배포
+        id: deployment
+        uses: actions/deploy-pages@v4
