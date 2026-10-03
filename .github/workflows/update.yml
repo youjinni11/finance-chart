@@ -19,6 +19,9 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Finance-chart
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -59,7 +62,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: Finance-chart/_site
       - name: GitHub Pages 에 배포
         id: deployment
         uses: actions/deploy-pages@v4
