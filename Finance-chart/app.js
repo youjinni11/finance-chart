@@ -3,6 +3,7 @@
 
 /* =========================================================== 기본 도구 */
 const CFG = window.FC_CONFIG || {};
+const I18N = window.I18N, tr = I18N.t, td = I18N.td;
 const DAY = 86400000;
 const MIN_DAY = Math.floor(Date.UTC(1600, 0, 1) / DAY);
 const $ = (id) => document.getElementById(id);
@@ -12,10 +13,10 @@ const dayToYMD = (d) => { const t = new Date(d * DAY); return [t.getUTCFullYear(
 const pad2 = (n) => String(n).padStart(2, '0');
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const PALETTE = ['#4ea8de', '#f4a261', '#2ec4b6', '#e76f51', '#b794f4', '#e9c46a', '#80ed99', '#ff6b9d', '#90be6d', '#c77dff', '#48cae4', '#ffb703', '#adb5bd', '#fb8500', '#06d6a0', '#ef476f'];
-const GROUPS = [['rates', '금리'], ['metals', '금 · 원자재'], ['crypto', '암호화폐'], ['fx', '환율'], ['stock', '주가지수'], ['macro', '물가 · 거시']];
-const CUR = { USD: ['달러', '$'], KRW: ['원', '₩'], JPY: ['엔', '¥'], CNY: ['위안', 'CN¥'], EUR: ['유로', '€'], GBP: ['파운드', '£'] };
-const FREQ = { daily: '일별', monthly: '월별', annual: '연 단위', mixed: '연·일 혼합' };
-const RANGES = [['최대', 'max'], ['100년', 100], ['50년', 50], ['10년', 10], ['5년', 5], ['1년', 1], ['6개월', 0.5], ['1개월', 1 / 12], ['맞춤', 'fit']];
+const GROUPS = [['rates', tr('금리')], ['metals', tr('금 · 원자재')], ['crypto', tr('암호화폐')], ['fx', tr('환율')], ['stock', tr('주가지수')], ['macro', tr('물가 · 거시')]];
+const CUR = { USD: [tr('달러'), '$'], KRW: [tr('원'), '₩'], JPY: [tr('엔'), '¥'], CNY: [tr('위안'), 'CN¥'], EUR: [tr('유로'), '€'], GBP: [tr('파운드'), '£'] };
+const FREQ = { daily: tr('일별'), monthly: tr('월별'), annual: tr('연 단위'), mixed: tr('연·일 혼합') };
+const RANGES = [[tr('최대'), 'max'], [tr('100년'), 100], [tr('50년'), 50], [tr('10년'), 10], [tr('5년'), 5], [tr('1년'), 1], [tr('6개월'), 0.5], [tr('1개월'), 1 / 12], [tr('맞춤'), 'fit']];
 
 function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 저장 불가 환경 */ } }
@@ -39,16 +40,17 @@ function fmtVal(v, unit) {
 function fmtAxis(v, unit) {
   const a = Math.abs(v);
   if (unit === '%') return (Math.abs(v) < 10 ? v.toFixed(1) : v.toFixed(0)) + '%';
-  if (unit === 'KRW') {
-    if (a >= 1e12) return '₩' + trim(v / 1e12) + '조'; if (a >= 1e8) return '₩' + trim(v / 1e8) + '억'; if (a >= 1e4) return '₩' + trim(v / 1e4) + '만';
+  if (unit === 'KRW' && I18N.lang !== 'en') {
+    if (a >= 1e12) return '₩' + trim(v / 1e12) + tr('조'); if (a >= 1e8) return '₩' + trim(v / 1e8) + tr('억'); if (a >= 1e4) return '₩' + trim(v / 1e4) + tr('만');
     return '₩' + trim(v);
   }
-  const sym = unit === 'USD' ? '$' : unit === 'GBP' ? '£' : unit === 'EUR' ? '€' : unit === 'JPY' ? '¥' : unit === 'CNY' ? 'CN¥' : '';
+  const sym = unit === 'USD' ? '$' : unit === 'GBP' ? '£' : unit === 'EUR' ? '€' : unit === 'JPY' ? '¥' : unit === 'CNY' ? 'CN¥' : unit === 'KRW' ? '₩' : '';
+  if (unit === 'KRW' && a >= 1e12) return sym + trim(v / 1e12) + 'T';
   if (a >= 1e9) return sym + trim(v / 1e9) + 'B'; if (a >= 1e6) return sym + trim(v / 1e6) + 'M'; if (a >= 1e4) return sym + trim(v / 1e3) + 'k';
   return sym + trim(v);
 }
 function trim(x) { const a = Math.abs(x); const s = a >= 100 ? x.toFixed(0) : a >= 10 ? x.toFixed(1) : a >= 1 ? x.toFixed(2) : x.toPrecision(2); return String(parseFloat(s)); }
-function fmtDateFor(s, d) { const [y, m, dd] = dayToYMD(d); return s.meta.freq === 'annual' ? `${y}년` : s.meta.freq === 'monthly' ? `${y}-${pad2(m)}` : dayToISO(d); }
+function fmtDateFor(s, d) { const [y, m, dd] = dayToYMD(d); return s.meta.freq === 'annual' ? `${y}${tr('년')}` : s.meta.freq === 'monthly' ? `${y}-${pad2(m)}` : dayToISO(d); }
 
 /* =========================================================== 상태 */
 const prefs = lsGet('fc_prefs_v1', {});
@@ -73,7 +75,7 @@ const pairId = (b, q) => `pair:${b}:${q}`;
 function metaOf(id) {
   if (id.startsWith('pair:')) {
     const [, b, q] = id.split(':');
-    return { id, name: `1${CUR[b][0]} = ?${CUR[q][0]}`, group: 'fx', unit: q, kind: 'line', freq: 'daily', source: `FRED(연준 H.10) 달러 기준 환율에서 계산한 교차환율 (${b}→${q})`, url: 'https://www.federalreserve.gov/releases/h10/', status: 'ok', isPair: true, base: b, quote: q };
+    return { id, name: `1${CUR[b][0]} = ?${CUR[q][0]}`, group: 'fx', unit: q, kind: 'line', freq: 'daily', source: tr('FRED(연준 H.10) 달러 기준 환율에서 계산한 교차환율') + ` (${b}→${q})`, url: 'https://www.federalreserve.gov/releases/h10/', status: 'ok', isPair: true, base: b, quote: q };
   }
   return S.manifest.series.find((s) => s.id === id);
 }
@@ -144,7 +146,7 @@ async function loadNotes() {
   S.know = null; /* 지식 노트는 열 때 다시 불러옴 (계정이 바뀌었을 수 있음) */
   const st = store();
   if (!st) { S.notes = []; draw(); return; }
-  try { S.notes = await st.list(); } catch (e) { console.warn(e); S.notes = []; flash('메모를 불러오지 못했습니다: ' + (e.message || e)); }
+  try { S.notes = await st.list(); } catch (e) { console.warn(e); S.notes = []; flash(tr('메모를 불러오지 못했습니다: ') + (e.message || e)); }
   draw();
 }
 
@@ -216,7 +218,7 @@ function render() {
   S.P = P;
   const noteEl = $('notice');
   const notices = [];
-  if (forced && S.mode !== 'rebase') notices.push('단위가 3종류 이상이라 \'시작=100 비교\'로 자동 전환했습니다.');
+  if (forced && S.mode !== 'rebase') notices.push(tr('단위가 3종류 이상이라 \'시작=100 비교\'로 자동 전환했습니다.'));
 
   // 시리즈별 변환 (시작=100)
   const items = [];
@@ -227,7 +229,7 @@ function render() {
     if (rebase) {
       const bi = Math.min(s.t.length - 1, firstGE(s.t, S.x0));
       base = s.v[bi];
-      if (!(base > 0)) { notices.push(`${s.name}: 기준값이 0 이하라 비교 모드에서 제외했습니다.`); continue; }
+      if (!(base > 0)) { notices.push(tr('{0}: 기준값이 0 이하라 비교 모드에서 제외했습니다.', s.name)); continue; }
       base = base / 100;
     }
     items.push({ s, lo, hi, base, axis: rebase ? 0 : units.indexOf(s.unit) });
@@ -265,7 +267,7 @@ function render() {
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     for (const v of tk) { const y = Math.round(a0.toY(v)) + 0.5; ctx.strokeStyle = css.grid; ctx.beginPath(); ctx.moveTo(P.l, y); ctx.lineTo(P.l + P.w, y); ctx.stroke(); ctx.fillStyle = css.axis; ctx.fillText(rebase ? String(Math.round(v)) : fmtAxis(v, a0.unit), P.l - 6, y); }
     ctx.textAlign = 'left'; ctx.fillStyle = css.axis; ctx.textBaseline = 'top';
-    ctx.fillText(rebase ? '시작=100 (기준 대비 %)' : unitLabel(a0.unit), 6, 6);
+    ctx.fillText(rebase ? tr('시작=100 (기준 대비 %)') : unitLabel(a0.unit), 6, 6);
     if (twoAxes) {
       const a1 = ax[1]; const tk1 = valTicks(a1.lo, a1.hi, P.h, a1.log);
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
@@ -297,14 +299,14 @@ function render() {
   // 빈 화면 안내
   const empty = $('empty');
   if (!S.manifest) { empty.style.display = 'flex'; }
-  else if (!list.length) { empty.style.display = 'flex'; empty.textContent = S.visible.length ? '불러오는 중이거나 표시할 데이터가 없습니다.' : '왼쪽에서 보고 싶은 지표를 클릭하세요.'; }
-  else if (!items.length) { empty.style.display = 'flex'; empty.textContent = '이 기간에는 선택한 지표의 데이터가 없습니다.\n\'맞춤\' 또는 \'최대\' 버튼으로 범위를 바꿔 보세요.'; }
+  else if (!list.length) { empty.style.display = 'flex'; empty.textContent = S.visible.length ? tr('불러오는 중이거나 표시할 데이터가 없습니다.') : tr('왼쪽에서 보고 싶은 지표를 클릭하세요.'); }
+  else if (!items.length) { empty.style.display = 'flex'; empty.textContent = tr('이 기간에는 선택한 지표의 데이터가 없습니다.\n\'맞춤\' 또는 \'최대\' 버튼으로 범위를 바꿔 보세요.'); }
   else empty.style.display = 'none';
   noteEl.textContent = notices.join('  ');
   renderChips(list);
   highlightRange();
 }
-function unitLabel(u) { return u === '%' ? '금리 (%)' : u === 'USD' ? '달러 ($)' : u === 'KRW' ? '원 (₩)' : u === 'GBP' ? '파운드 (£)' : u === 'index' ? '지수' : u === 'pt' ? '주가지수 (pt)' : (CUR[u] ? CUR[u][0] : u); }
+function unitLabel(u) { return u === '%' ? tr('금리 (%)') : u === 'USD' ? tr('달러 ($)') : u === 'KRW' ? tr('원 (₩)') : u === 'GBP' ? tr('파운드 (£)') : u === 'index' ? tr('지수') : u === 'pt' ? tr('주가지수 (pt)') : (CUR[u] ? CUR[u][0] : u); }
 
 // 시리즈의 데이터가 hover 날짜를 "덮는지" (마지막 값에서 너무 멀리 떨어지면 값을 보여주지 않는다)
 function inCoverage(s, d, i) {
@@ -346,7 +348,7 @@ function drawSeries(it, a) {
 
 /* =========================================================== 임기 띠 (대통령·연준 의장·재무장관) */
 const OFF_H = 16;
-const OFF_SHORT = { us_president: '미 대통령', fed_chair: '연준 의장', us_treasury: '미 재무장관', kr_president: '한 대통령', kr_finance: '한 재경장관' };
+const OFF_SHORT = { us_president: tr('미 대통령'), fed_chair: tr('연준 의장'), us_treasury: tr('미 재무장관'), kr_president: tr('한 대통령'), kr_finance: tr('한 재경장관') };
 function offActive() { return S.offices ? S.offices.roles.filter((r) => S.offOn.includes(r.id)) : []; }
 function drawOffices() {
   const P = S.P, roles = offActive(); if (!roles.length) return;
@@ -375,11 +377,11 @@ function drawOffices() {
 }
 function officeText(o) {
   const { role, it } = o;
-  return { title: `${it.name}`, term: `${it.start} ~ ${it.end || '현재'}`, tend: `${role.tend_title}: ${it.label}`, extra: it.extra || '', col: (role.legend[it.tk] || ['', '#9ca3af'])[1] };
+  return { title: `${it.name}`, term: `${it.start} ~ ${it.end || tr('현재')}`, tend: `${role.tend_title}: ${it.label}`, extra: it.extra || '', col: (role.legend[it.tk] || ['', '#9ca3af'])[1] };
 }
 function showOffice(o, px, py) {
   const t = officeText(o), r = o.role;
-  pop.innerHTML = `<h5><i class="cdot" style="background:${esc(t.col)}"></i>${esc(t.title)}</h5><div class="meta">${esc(r.name)} · ${esc(t.term)}</div><div class="body"><b>${esc(t.tend)}</b>${t.extra ? '<br>' + esc(t.extra) : ''}</div><div class="meta">출처: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.source)}</a></div><div class="meta warn">⚠ ${esc(String(r.caution).replace(/^⚠\s*/, ''))}</div><div class="btns"><button class="btn" data-a="x">닫기</button></div>`;
+  pop.innerHTML = `<h5><i class="cdot" style="background:${esc(t.col)}"></i>${esc(t.title)}</h5><div class="meta">${esc(r.name)} · ${esc(t.term)}</div><div class="body"><b>${esc(t.tend)}</b>${t.extra ? '<br>' + esc(t.extra) : ''}</div><div class="meta">${tr('출처:')} <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.source)}</a></div><div class="meta warn">⚠ ${esc(String(r.caution).replace(/^⚠\s*/, ''))}</div><div class="btns"><button class="btn" data-a="x">${tr('닫기')}</button></div>`;
   pop.querySelector('[data-a=x]').onclick = closePop; placePop(px, py);
 }
 
@@ -438,7 +440,7 @@ function renderChips(list) {
     let val = '';
     const d = S.hover ? S.hover.d : S.end; const i = lastLE(s.t, d);
     if (i >= 0 && inCoverage(s, d, i)) val = fmtVal(s.v[i], s.unit);
-    c.innerHTML = `<i></i>${esc(s.name)} <em>${esc(val)}</em><button title="숨기기">×</button>`;
+    c.innerHTML = `<i></i>${esc(s.name)} <em>${esc(val)}</em><button title="${tr('숨기기')}">×</button>`;
     c.querySelector('button').onclick = () => toggleSeries(s.id, false);
     box.appendChild(c);
   }
@@ -507,9 +509,9 @@ function hover(px, py) {
   cv.style.cursor = hit ? 'pointer' : 'crosshair';
   const tip = $('tip');
   if (hit) {
-    if (hit.type === 'event') { const e = hit.ref; tip.innerHTML = `<div class="d">${esc(e.date)} · ${esc(e.title)}</div><div class="t">${esc(e.desc || '')}</div><div class="r"><small class="warn">⚠ 연도·날짜는 검증 필요</small></div>`; }
-    else if (hit.type === 'office') { const t = officeText(hit.ref); tip.innerHTML = `<div class="d">${esc(hit.ref.role.name)} · ${esc(t.title)}</div><div class="r"><i style="--c:${t.col}"></i><span>${esc(t.tend)}</span></div><div class="t">${esc(t.term)}${t.extra ? '<br>' + esc(t.extra) : ''}</div><div class="r"><small class="warn">⚠ 성향 분류는 해석이 들어간 요약 · 클릭하면 출처</small></div>`; }
-    else { const n = hit.ref; tip.innerHTML = `<div class="d">${esc(n.date)} · 메모</div><div class="t">${esc(truncate(n.body, 90))}</div><div class="r"><small>클릭하면 수정·삭제</small></div>`; }
+    if (hit.type === 'event') { const e = hit.ref; tip.innerHTML = `<div class="d">${esc(e.date)} · ${esc(e.title)}</div><div class="t">${esc(e.desc || '')}</div><div class="r"><small class="warn">${tr('⚠ 연도·날짜는 검증 필요')}</small></div>`; }
+    else if (hit.type === 'office') { const t = officeText(hit.ref); tip.innerHTML = `<div class="d">${esc(hit.ref.role.name)} · ${esc(t.title)}</div><div class="r"><i style="--c:${t.col}"></i><span>${esc(t.tend)}</span></div><div class="t">${esc(t.term)}${t.extra ? '<br>' + esc(t.extra) : ''}</div><div class="r"><small class="warn">${tr('⚠ 성향 분류는 해석이 들어간 요약 · 클릭하면 출처')}</small></div>`; }
+    else { const n = hit.ref; tip.innerHTML = `<div class="d">${esc(n.date)} ${tr('· 메모')}</div><div class="t">${esc(truncate(n.body, 90))}</div><div class="r"><small>${tr('클릭하면 수정·삭제')}</small></div>`; }
   } else {
     const rows = []; const dd = Math.round(S.hover.d);
     for (const it of S.view.items) {
@@ -518,7 +520,7 @@ function hover(px, py) {
       const when = it.s.t[i] !== dd ? ` <small>· ${fmtDateFor(it.s, it.s.t[i])}</small>` : '';
       rows.push(`<div class="r"><i style="--c:${it.s.color}"></i><span>${esc(it.s.name)}${when}</span><b>${esc(txt)}</b></div>`);
     }
-    tip.innerHTML = `<div class="d">${dayToISO(dd)}</div>` + (rows.join('') || '<div class="r"><small>이 날짜의 값이 없습니다</small></div>');
+    tip.innerHTML = `<div class="d">${dayToISO(dd)}</div>` + (rows.join('') || `<div class="r"><small>${tr('이 날짜의 값이 없습니다')}</small></div>`);
   }
   tip.style.display = 'block';
   const tw = tip.offsetWidth, th = tip.offsetHeight; let tx = px + 16, ty = py + 14; if (tx + tw > W - 4) tx = px - tw - 16; if (ty + th > H - 4) ty = H - th - 4; if (ty < 4) ty = 4;
@@ -540,27 +542,27 @@ function onClick(px, py) {
   if (px < P.l || px > P.l + P.w || py < P.t || py > P.b + P.lane) return;
   hideTip();
   const day = Math.round(dOf(px));
-  pop.innerHTML = `<h5>${dayToISO(day)}</h5><div class="meta">이 날짜에 메모를 남길 수 있어요.</div><div class="btns"><button class="btn" data-a="x">닫기</button><button class="btn p" data-a="add">메모 추가하기</button></div>`;
+  pop.innerHTML = `<h5>${dayToISO(day)}</h5><div class="meta">${tr('이 날짜에 메모를 남길 수 있어요.')}</div><div class="btns"><button class="btn" data-a="x">${tr('닫기')}</button><button class="btn p" data-a="add">${tr('메모 추가하기')}</button></div>`;
   pop.querySelector('[data-a=x]').onclick = closePop;
-  pop.querySelector('[data-a=add]').onclick = () => { if (!store()) { closePop(); return openAuth('메모는 로그인 후 사용할 수 있어요.'); } editNote(null, day, px, py, py < P.b ? yToValueInfo(py) : null); };
+  pop.querySelector('[data-a=add]').onclick = () => { if (!store()) { closePop(); return openAuth(tr('메모는 로그인 후 사용할 수 있어요.')); } editNote(null, day, px, py, py < P.b ? yToValueInfo(py) : null); };
   placePop(px, py);
 }
 // 클릭한 높이에서 가장 가까운 선(표시 중인 지표) 찾기
 function yToValueInfo(py) { return null; }
 
 function showEvent(e, px, py) {
-  pop.innerHTML = `<h5>${esc(e.title)}</h5><div class="meta">${esc(e.date)}</div><div class="body">${esc(e.desc || '')}</div><div class="meta warn">⚠ 연도·날짜는 직접 검증이 필요합니다.</div><div class="btns"><button class="btn" data-a="x">닫기</button></div>`;
+  pop.innerHTML = `<h5>${esc(e.title)}</h5><div class="meta">${esc(e.date)}</div><div class="body">${esc(e.desc || '')}</div><div class="meta warn">${tr('⚠ 연도·날짜는 직접 검증이 필요합니다.')}</div><div class="btns"><button class="btn" data-a="x">${tr('닫기')}</button></div>`;
   pop.querySelector('[data-a=x]').onclick = closePop; placePop(px, py);
 }
 function seriesName(id) { const m = id && metaOf(id); return m ? m.name : (id || ''); }
 function showNote(n, px, py) {
-  pop.innerHTML = `<h5>${n.color ? `<i class="cdot" style="background:${esc(n.color)}"></i>` : ''}${esc(n.date)} 메모</h5><div class="meta">저장 위치: ${n.scope === 'series' ? '지표 · ' + esc(seriesName(n.series_id)) : '연표(항상 표시)'} · 표시: ${n.display === 'dot' ? '점' : '글씨'}</div><div class="body">${esc(n.body)}</div><div class="btns"><button class="btn d" data-a="del">삭제</button><button class="btn" data-a="edit">수정</button><button class="btn" data-a="x">닫기</button></div>`;
+  pop.innerHTML = `<h5>${n.color ? `<i class="cdot" style="background:${esc(n.color)}"></i>` : ''}${esc(n.date)} ${tr('메모')}</h5><div class="meta">${tr('저장 위치:')} ${n.scope === 'series' ? tr('지표 · ') + esc(seriesName(n.series_id)) : tr('연표(항상 표시)')} ${tr('· 표시:')} ${n.display === 'dot' ? tr('점') : tr('글씨')}</div><div class="body">${esc(n.body)}</div><div class="btns"><button class="btn d" data-a="del">${tr('삭제')}</button><button class="btn" data-a="edit">${tr('수정')}</button><button class="btn" data-a="x">${tr('닫기')}</button></div>`;
   pop.querySelector('[data-a=x]').onclick = closePop;
   pop.querySelector('[data-a=edit]').onclick = () => editNote(n, isoToDay(n.date), px, py);
   pop.querySelector('[data-a=del]').onclick = () => {
-    pop.querySelector('.btns').innerHTML = '<span class="meta" style="margin-right:auto">정말 삭제할까요?</span><button class="btn" data-a="no">아니요</button><button class="btn d" data-a="yes">삭제</button>';
+    pop.querySelector('.btns').innerHTML = `<span class="meta" style="margin-right:auto">${tr('정말 삭제할까요?')}</span><button class="btn" data-a="no">${tr('아니요')}</button><button class="btn d" data-a="yes">${tr('삭제')}</button>`;
     pop.querySelector('[data-a=no]').onclick = () => showNote(n, px, py);
-    pop.querySelector('[data-a=yes]').onclick = async () => { try { await store().remove(n.id); S.notes = S.notes.filter((x) => x.id !== n.id); closePop(); draw(); } catch (e) { alert('삭제하지 못했습니다: ' + (e.message || e)); } };
+    pop.querySelector('[data-a=yes]').onclick = async () => { try { await store().remove(n.id); S.notes = S.notes.filter((x) => x.id !== n.id); closePop(); draw(); } catch (e) { alert(tr('삭제하지 못했습니다: ') + (e.message || e)); } };
   };
   placePop(px, py);
 }
@@ -571,28 +573,28 @@ function editNote(n, day, px, py) {
   const cur = n && n.scope === 'series' ? n.series_id : (cands[0] && cands[0].id);
   const scope = n ? n.scope : 'timeline';
   const display = n ? n.display : 'dot';
-  pop.innerHTML = `<h5>${n ? '메모 수정' : '메모 추가'} · ${date}</h5>
-    <textarea maxlength="4000" placeholder="이 시점에 일어난 일, 헷갈리는 점 등을 적어 두세요"></textarea>
-    <div class="f"><b>저장 위치</b><br>
-      <label><input type="radio" name="sc" value="timeline" ${scope === 'timeline' ? 'checked' : ''}> 연표 (항상 보임)</label>
-      <label><input type="radio" name="sc" value="series" ${scope === 'series' ? 'checked' : ''} ${cands.length || (n && n.scope === 'series') ? '' : 'disabled'}> 특정 지표와 함께</label>
+  pop.innerHTML = `<h5>${n ? tr('메모 수정') : tr('메모 추가')} · ${date}</h5>
+    <textarea maxlength="4000" placeholder="${tr('이 시점에 일어난 일, 헷갈리는 점 등을 적어 두세요')}"></textarea>
+    <div class="f"><b>${tr('저장 위치')}</b><br>
+      <label><input type="radio" name="sc" value="timeline" ${scope === 'timeline' ? 'checked' : ''}> ${tr('연표 (항상 보임)')}</label>
+      <label><input type="radio" name="sc" value="series" ${scope === 'series' ? 'checked' : ''} ${cands.length || (n && n.scope === 'series') ? '' : 'disabled'}> ${tr('특정 지표와 함께')}</label>
       <select id="scSel">${(n && n.scope === 'series' && !cands.find((c) => c.id === n.series_id) ? [{ id: n.series_id, name: seriesName(n.series_id) }] : []).concat(cands).map((s) => `<option value="${esc(s.id)}" ${s.id === cur ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
     </div>
-    <div class="f"><b>표시 방식</b><br>
-      <label><input type="radio" name="dp" value="dot" ${display === 'dot' ? 'checked' : ''}> 작은 점 (클릭하면 보임)</label>
-      <label><input type="radio" name="dp" value="label" ${display === 'label' ? 'checked' : ''}> 글씨로 항상 표시</label>
+    <div class="f"><b>${tr('표시 방식')}</b><br>
+      <label><input type="radio" name="dp" value="dot" ${display === 'dot' ? 'checked' : ''}> ${tr('작은 점 (클릭하면 보임)')}</label>
+      <label><input type="radio" name="dp" value="label" ${display === 'label' ? 'checked' : ''}> ${tr('글씨로 항상 표시')}</label>
     </div>
-    <div class="f"><b>색상</b><div class="swatches" id="noteColors">${colorPickerHtml(n ? n.color : null)}</div></div>
+    <div class="f"><b>${tr('색상')}</b><div class="swatches" id="noteColors">${colorPickerHtml(n ? n.color : null)}</div></div>
     <div class="err" id="perr"></div>
-    <div class="btns"><button class="btn" data-a="x">취소</button><button class="btn p" data-a="ok">저장</button></div>`;
+    <div class="btns"><button class="btn" data-a="x">${tr('취소')}</button><button class="btn p" data-a="ok">${tr('저장')}</button></div>`;
   const ta = pop.querySelector('textarea'); ta.value = n ? n.body : '';
   bindColorPicker(pop.querySelector('#noteColors'));
   const sel = pop.querySelector('#scSel'); const sync = () => { sel.style.display = pop.querySelector('[name=sc]:checked').value === 'series' ? 'block' : 'none'; }; pop.querySelectorAll('[name=sc]').forEach((r) => r.onchange = sync); sync();
   pop.querySelector('[data-a=x]').onclick = closePop;
   pop.querySelector('[data-a=ok]').onclick = async (ev) => {
-    const body = ta.value.trim(); if (!body) { pop.querySelector('#perr').textContent = '메모 내용을 입력하세요.'; return; }
+    const body = ta.value.trim(); if (!body) { pop.querySelector('#perr').textContent = tr('메모 내용을 입력하세요.'); return; }
     const sc = pop.querySelector('[name=sc]:checked').value, dp = pop.querySelector('[name=dp]:checked').value;
-    const sid = sc === 'series' ? sel.value : null; if (sc === 'series' && !sid) { pop.querySelector('#perr').textContent = '지표를 선택하세요.'; return; }
+    const sid = sc === 'series' ? sel.value : null; if (sc === 'series' && !sid) { pop.querySelector('#perr').textContent = tr('지표를 선택하세요.'); return; }
     let value = null; if (sid) { const d = S.data.get(sid); if (d) { const i = lastLE(d.t, day); if (i >= 0) value = d.v[i]; } }
     const payload = { date, value, body, scope: sc, series_id: sid, display: dp, color: pickedColor(pop.querySelector('#noteColors')) };
     ev.target.disabled = true;
@@ -600,7 +602,7 @@ function editNote(n, day, px, py) {
       if (n) { const u = await store().update(n.id, payload); S.notes = S.notes.map((x) => x.id === n.id ? u : x); }
       else { const a = await store().add(payload); S.notes.push(a); }
       closePop(); draw();
-    } catch (e) { ev.target.disabled = false; pop.querySelector('#perr').textContent = '저장하지 못했습니다: ' + (e.message || e); }
+    } catch (e) { ev.target.disabled = false; pop.querySelector('#perr').textContent = tr('저장하지 못했습니다: ') + (e.message || e); }
   };
   placePop(px, py); ta.focus();
 }
@@ -613,7 +615,7 @@ function buildSide() {
     const g = document.createElement('div'); g.className = 'grp'; g.innerHTML = `<h4>${gname}</h4>`;
     let any = false;
     if (gk === 'fx') {
-      for (const [b, qc] of S.pairs) { const id = pairId(b, qc); const m = metaOf(id); if (q && !m.name.toLowerCase().includes(q) && !'환율'.includes(q)) continue; g.appendChild(rowEl(m, id)); any = true; }
+      for (const [b, qc] of S.pairs) { const id = pairId(b, qc); const m = metaOf(id); if (q && !m.name.toLowerCase().includes(q) && !tr('환율').includes(q)) continue; g.appendChild(rowEl(m, id)); any = true; }
       g.appendChild(pairForm());
       any = true;
     } else {
@@ -623,13 +625,13 @@ function buildSide() {
     }
     if (any) box.appendChild(g);
   }
-  if (S.offices && (!q || '임기 대통령 의장 장관 성향'.includes(q) || S.offices.roles.some((r) => r.name.includes(q)))) {
-    const g = document.createElement('div'); g.className = 'grp'; g.innerHTML = '<h4>임기 · 성향 (차트 아래 띠)</h4>';
+  if (S.offices && (!q || tr('임기 대통령 의장 장관 성향').includes(q) || S.offices.roles.some((r) => r.name.includes(q)))) {
+    const g = document.createElement('div'); g.className = 'grp'; g.innerHTML = `<h4>${tr('임기 · 성향 (차트 아래 띠)')}</h4>`;
     for (const r of S.offices.roles) {
       const on = S.offOn.includes(r.id);
       const row = document.createElement('div'); row.className = 'row' + (on ? ' on' : ''); row.style.setProperty('--c', '#9ca3af'); row.title = r.source;
       const lg = Object.values(r.legend).map(([n, c]) => `<span class="lg"><i style="background:${c}"></i>${esc(n)}</span>`).join('');
-      row.innerHTML = `<div class="sw"></div><div class="nm"><b>${esc(r.name)}</b><small>성향 = ${esc(r.tend_title)}</small><div class="lgs">${lg}</div></div><div class="tools"><span class="warn" title="${esc('⚠ ' + String(r.caution).replace(/^⚠\s*/, ''))}">⚠</span><a href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc('출처: ' + r.source)}">ⓘ</a></div>`;
+      row.innerHTML = `<div class="sw"></div><div class="nm"><b>${esc(r.name)}</b><small>${tr('성향 =')} ${esc(r.tend_title)}</small><div class="lgs">${lg}</div></div><div class="tools"><span class="warn" title="${esc('⚠ ' + String(r.caution).replace(/^⚠\s*/, ''))}">⚠</span><a href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(tr('출처: ') + r.source)}">ⓘ</a></div>`;
       row.addEventListener('click', (e) => { if (e.target.closest('a')) return; S.offOn = on ? S.offOn.filter((x) => x !== r.id) : S.offOn.concat(r.id); savePrefs(); closePop(); buildSide(); draw(); });
       g.appendChild(row);
     }
@@ -641,13 +643,13 @@ function rowEl(m, id) {
   const on = S.visible.includes(id);
   const r = document.createElement('div'); r.className = 'row' + (on ? ' on' : '') + (has ? '' : ' off'); r.style.setProperty('--c', colorFor(id)); r.dataset.id = id;
   let span = '';
-  if (m.isPair) { const A = m.base === 'USD' ? null : S.manifest.series.find((s) => s.id === 'fx_' + m.base), B = m.quote === 'USD' ? null : S.manifest.series.find((s) => s.id === 'fx_' + m.quote); const st = [A, B].filter(Boolean).map((x) => x.start).filter(Boolean).sort().pop(); span = (st ? st.slice(0, 4) + '~ · ' : '') + '일별'; }
-  else span = m.n ? `${m.start.slice(0, 4)} ~ ${m.end.slice(0, 4)} · ${FREQ[m.freq] || m.freq}` : '데이터 없음';
+  if (m.isPair) { const A = m.base === 'USD' ? null : S.manifest.series.find((s) => s.id === 'fx_' + m.base), B = m.quote === 'USD' ? null : S.manifest.series.find((s) => s.id === 'fx_' + m.quote); const st = [A, B].filter(Boolean).map((x) => x.start).filter(Boolean).sort().pop(); span = (st ? st.slice(0, 4) + '~ · ' : '') + tr('일별'); }
+  else span = m.n ? `${m.start.slice(0, 4)} ~ ${m.end.slice(0, 4)} · ${FREQ[m.freq] || m.freq}` : tr('데이터 없음');
   const warnTxt = m.caution ? `⚠ ${m.caution}` : '';
   const tools = [];
   if (m.caution) tools.push(`<span class="warn" title="${esc(warnTxt)}">⚠</span>`);
-  tools.push(`<a href="${esc(m.url || '#')}" target="_blank" rel="noopener" title="${esc('출처: ' + (m.source || '') + (m.detail ? '\n사용한 자료: ' + m.detail : ''))}">ⓘ</a>`);
-  if (m.isPair) tools.push('<button data-x title="이 환율 지우기">×</button>');
+  tools.push(`<a href="${esc(m.url || '#')}" target="_blank" rel="noopener" title="${esc(tr('출처: ') + (m.source || '') + (m.detail ? tr('\n사용한 자료: ') + m.detail : ''))}">ⓘ</a>`);
+  if (m.isPair) tools.push(`<button data-x title="${tr('이 환율 지우기')}">×</button>`);
   r.innerHTML = `<div class="sw"></div><div class="nm"><b>${esc(m.name)}</b><small>${esc(span)}${!has && m.status && m.status !== 'ok' ? ' · ' + esc(m.status) : ''}</small></div><div class="tools">${tools.join('')}</div>`;
   r.title = m.source || '';
   r.addEventListener('click', (e) => { if (e.target.closest('a')) return; if (e.target.closest('[data-x]')) { S.pairs = S.pairs.filter(([b, q]) => pairId(b, q) !== id); S.visible = S.visible.filter((x) => x !== id); savePrefs(); buildSide(); draw(); return; } if (!has) return; toggleSeries(id); });
@@ -657,9 +659,9 @@ function pairAvailable(m) { const need = [m.base, m.quote].filter((c) => c !== '
 function pairForm() {
   const f = document.createElement('div');
   const opts = (sel) => Object.keys(CUR).map((c) => `<option value="${c}" ${c === sel ? 'selected' : ''}>${CUR[c][0]} (${c})</option>`).join('');
-  f.innerHTML = `<div class="pair-form"><select id="pfB">${opts('USD')}</select><span>1당 →</span><select id="pfQ">${opts('KRW')}</select><button id="pfAdd">추가</button></div><div class="pair-help">예: 1달러당 몇 유로, 1엔당 몇 원</div>`;
+  f.innerHTML = `<div class="pair-form"><select id="pfB">${opts('USD')}</select><span>${tr('1당 →')}</span><select id="pfQ">${opts('KRW')}</select><button id="pfAdd">${tr('추가')}</button></div><div class="pair-help">${tr('예: 1달러당 몇 유로, 1엔당 몇 원')}</div>`;
   f.querySelector('#pfAdd').onclick = () => {
-    const b = f.querySelector('#pfB').value, q = f.querySelector('#pfQ').value; if (b === q) return flash('같은 통화끼리는 환율을 만들 수 없어요.');
+    const b = f.querySelector('#pfB').value, q = f.querySelector('#pfQ').value; if (b === q) return flash(tr('같은 통화끼리는 환율을 만들 수 없어요.'));
     if (!S.pairs.some(([x, y]) => x === b && y === q)) S.pairs.push([b, q]);
     savePrefs(); buildSide(); toggleSeries(pairId(b, q), true);
   };
@@ -671,7 +673,7 @@ async function toggleSeries(id, force) {
     if (!S.visible.includes(id)) S.visible.push(id);
     document.querySelector(`.row[data-id="${CSS.escape(id)}"]`)?.classList.add('on');
     const d = await ensure(id);
-    if (!d) { S.visible = S.visible.filter((x) => x !== id); flash('이 지표의 데이터를 불러오지 못했습니다.'); }
+    if (!d) { S.visible = S.visible.filter((x) => x !== id); flash(tr('이 지표의 데이터를 불러오지 못했습니다.')); }
   } else S.visible = S.visible.filter((x) => x !== id);
   savePrefs(); buildSide(); if (on && S.rangeKey === 'fit') setRange('fit'); else draw();
 }
@@ -682,34 +684,34 @@ function closeModal() { modal.hidden = true; modal.innerHTML = ''; }
 modal.addEventListener('mousedown', (e) => { if (e.target === modal) closeModal(); });
 function authErr(m) {
   m = String(m || '');
-  if (/Invalid login/i.test(m)) return '이메일 또는 비밀번호가 맞지 않습니다.';
-  if (/already registered|already been registered/i.test(m)) return '이미 가입된 이메일입니다. 로그인해 주세요.';
-  if (/at least 6/i.test(m)) return '비밀번호는 6자 이상이어야 합니다.';
-  if (/not confirmed/i.test(m)) return '이메일 확인이 아직 안 됐습니다. 받은편지함의 확인 메일을 눌러 주세요.';
-  if (/rate limit/i.test(m)) return '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.';
-  if (/valid email|invalid format|Unable to validate email/i.test(m)) return '이메일 형식을 확인해 주세요.';
+  if (/Invalid login/i.test(m)) return tr('이메일 또는 비밀번호가 맞지 않습니다.');
+  if (/already registered|already been registered/i.test(m)) return tr('이미 가입된 이메일입니다. 로그인해 주세요.');
+  if (/at least 6/i.test(m)) return tr('비밀번호는 6자 이상이어야 합니다.');
+  if (/not confirmed/i.test(m)) return tr('이메일 확인이 아직 안 됐습니다. 받은편지함의 확인 메일을 눌러 주세요.');
+  if (/rate limit/i.test(m)) return tr('요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.');
+  if (/valid email|invalid format|Unable to validate email/i.test(m)) return tr('이메일 형식을 확인해 주세요.');
   return m;
 }
 function openAuth(msg) {
   modal.hidden = false;
-  if (!sb) { modal.innerHTML = `<div class="card"><h3>로그인</h3><div class="msg">로그인 기능을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.</div><div class="btns"><button class="btn" id="mc">닫기</button></div></div>`; $('mc').onclick = closeModal; return; }
+  if (!sb) { modal.innerHTML = `<div class="card"><h3>${tr('로그인')}</h3><div class="msg">${tr('로그인 기능을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.')}</div><div class="btns"><button class="btn" id="mc">${tr('닫기')}</button></div></div>`; $('mc').onclick = closeModal; return; }
   if (S.user) {
-    modal.innerHTML = `<div class="card"><h3>내 계정</h3><div class="msg">${esc(S.user.email)} 로 로그인되어 있습니다.\n메모는 이 계정에만 저장되고, 어느 기기에서 로그인해도 같이 보입니다.</div><div class="btns"><button class="btn" id="mc">닫기</button><button class="btn d" id="mo">로그아웃</button></div></div>`;
+    modal.innerHTML = `<div class="card"><h3>${tr('내 계정')}</h3><div class="msg">${esc(S.user.email)} ${tr('로 로그인되어 있습니다.\n메모는 이 계정에만 저장되고, 어느 기기에서 로그인해도 같이 보입니다.')}</div><div class="btns"><button class="btn" id="mc">${tr('닫기')}</button><button class="btn d" id="mo">${tr('로그아웃')}</button></div></div>`;
     $('mc').onclick = closeModal; $('mo').onclick = async () => { await sb.auth.signOut(); closeModal(); }; return;
   }
-  modal.innerHTML = `<div class="card"><h3>로그인 / 회원가입</h3>${msg ? `<div class="msg" style="margin:0 0 10px">${esc(msg)}</div>` : ''}
-    <label class="fld">이메일<input id="ae" type="email" autocomplete="email"></label>
-    <label class="fld">비밀번호 (6자 이상)<input id="ap" type="password" autocomplete="current-password"></label>
+  modal.innerHTML = `<div class="card"><h3>${tr('로그인 / 회원가입')}</h3>${msg ? `<div class="msg" style="margin:0 0 10px">${esc(msg)}</div>` : ''}
+    <label class="fld">${tr('이메일')}<input id="ae" type="email" autocomplete="email"></label>
+    <label class="fld">${tr('비밀번호 (6자 이상)')}<input id="ap" type="password" autocomplete="current-password"></label>
     <div class="err" id="aerr"></div><div class="msg" id="ainfo"></div>
-    <div class="btns"><button class="btn" id="mc">닫기</button><button class="btn" id="asu">회원가입</button><button class="btn p" id="asi">로그인</button></div></div>`;
+    <div class="btns"><button class="btn" id="mc">${tr('닫기')}</button><button class="btn" id="asu">${tr('회원가입')}</button><button class="btn p" id="asi">${tr('로그인')}</button></div></div>`;
   $('mc').onclick = closeModal;
   const run = async (kind) => {
     const email = $('ae').value.trim(), password = $('ap').value; $('aerr').textContent = ''; $('ainfo').textContent = '';
-    if (!email || !password) { $('aerr').textContent = '이메일과 비밀번호를 입력하세요.'; return; }
+    if (!email || !password) { $('aerr').textContent = tr('이메일과 비밀번호를 입력하세요.'); return; }
     $('asi').disabled = $('asu').disabled = true;
     try {
       if (kind === 'in') { const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) throw error; closeModal(); }
-      else { const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } }); if (error) throw error; if (data.session) closeModal(); else $('ainfo').textContent = '확인 메일을 보냈습니다.\n메일의 링크를 누른 뒤 다시 와서 로그인해 주세요.'; }
+      else { const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } }); if (error) throw error; if (data.session) closeModal(); else $('ainfo').textContent = tr('확인 메일을 보냈습니다.\n메일의 링크를 누른 뒤 다시 와서 로그인해 주세요.'); }
     } catch (e) { $('aerr').textContent = authErr(e.message); }
     $('asi').disabled = $('asu').disabled = false;
   };
@@ -717,11 +719,11 @@ function openAuth(msg) {
   $('ap').addEventListener('keydown', (e) => { if (e.key === 'Enter') run('in'); });
   $('ae').focus();
 }
-function updateAuthBtn() { const b = $('btnAuth'); b.textContent = FORCE_LOCAL ? '로컬 모드' : S.user ? (S.user.email.split('@')[0]) : '로그인'; b.classList.toggle('primary', !S.user && !FORCE_LOCAL); }
+function updateAuthBtn() { const b = $('btnAuth'); b.textContent = FORCE_LOCAL ? tr('로컬 모드') : S.user ? (S.user.email.split('@')[0]) : tr('로그인'); b.classList.toggle('primary', !S.user && !FORCE_LOCAL); }
 
 /* =========================================================== 색상 선택 (메모·지식 노트 공용) */
 function colorPickerHtml(cur) {
-  const none = `<label class="sw-c none" title="자동 (기본 색)"><input type="radio" name="ncol" value="" ${cur ? '' : 'checked'}><span>자동</span></label>`;
+  const none = `<label class="sw-c none" title="${tr('자동 (기본 색)')}"><input type="radio" name="ncol" value="" ${cur ? '' : 'checked'}><span>${tr('자동')}</span></label>`;
   return none + NOTE_COLORS.map((c) => `<label class="sw-c" title="${c}"><input type="radio" name="ncol" value="${c}" ${cur === c ? 'checked' : ''}><span style="background:${c}"></span></label>`).join('');
 }
 function bindColorPicker() { /* 라디오 버튼이라 따로 연결할 것이 없음 */ }
@@ -746,7 +748,7 @@ function kstore() { return FORCE_LOCAL ? KLocal : (sb && S.user ? KRemote : null
 async function loadKnowledge() {
   const st = kstore();
   if (!st) { S.know = []; return; }
-  try { S.know = await st.list(); } catch (e) { console.warn(e); S.know = []; flash('지식 노트를 불러오지 못했습니다: ' + (e.message || e)); }
+  try { S.know = await st.list(); } catch (e) { console.warn(e); S.know = []; flash(tr('지식 노트를 불러오지 못했습니다: ') + (e.message || e)); }
 }
 // 입력 "1602" / "1602-03" / "1602-03-20" → "YYYY-MM-DD" (잘못된 형식이면 null)
 function normRefDate(s) {
@@ -756,13 +758,13 @@ function normRefDate(s) {
   m = s.match(/^(\d{4})[-.](\d{1,2})[-.](\d{1,2})$/); if (m) { const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); if (d.getUTCMonth() === +m[2] - 1) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`; }
   return null;
 }
-const showRef = (d) => (d ? (d.endsWith('-01-01') ? d.slice(0, 4) + '년' : d) : '');
+const showRef = (d) => (d ? (d.endsWith('-01-01') ? d.slice(0, 4) + tr('년') : d) : '');
 let kQuery = '';
 
 async function openKnowledge() {
   modal.hidden = false;
   const st = kstore();
-  if (!st) { modal.innerHTML = `<div class="card"><h3>지식 노트</h3><div class="msg">책에서 읽은 내용을 적어 두는 공간입니다.\n로그인하면 사용할 수 있어요.</div><div class="btns"><button class="btn" id="mc">닫기</button><button class="btn p" id="ml">로그인</button></div></div>`; $('mc').onclick = closeModal; $('ml').onclick = () => openAuth(); return; }
+  if (!st) { modal.innerHTML = `<div class="card"><h3>${tr('지식 노트')}</h3><div class="msg">${tr('책에서 읽은 내용을 적어 두는 공간입니다.\n로그인하면 사용할 수 있어요.')}</div><div class="btns"><button class="btn" id="mc">${tr('닫기')}</button><button class="btn p" id="ml">${tr('로그인')}</button></div></div>`; $('mc').onclick = closeModal; $('ml').onclick = () => openAuth(); return; }
   if (!S.know) await loadKnowledge();
   renderKnowledgeList();
 }
@@ -770,42 +772,42 @@ function renderKnowledgeList() {
   const q = kQuery.trim().toLowerCase();
   const all = S.know || [];
   const items = all.filter((n) => !q || (n.title + ' ' + n.body + ' ' + n.source).toLowerCase().includes(q));
-  modal.innerHTML = `<div class="card wide"><h3>지식 노트 (${all.length})</h3>
-    <div class="kbar"><input id="kq" type="search" placeholder="제목·내용·출처 검색" value="${esc(kQuery)}"><button class="btn p" id="kadd">+ 새 노트</button></div>
-    ${items.length ? '<ul class="kl">' + items.map((n, i) => `<li data-i="${i}" style="--kc:${esc(n.color || 'var(--line)')}"><b>${esc(n.title)}</b><small>${[n.source && '📖 ' + esc(n.source), n.ref_date && '🕒 ' + esc(showRef(n.ref_date))].filter(Boolean).join(' · ')}</small>${n.body ? `<span>${esc(truncate(n.body, 140))}</span>` : ''}</li>`).join('') + '</ul>' : `<div class="msg">${all.length ? '검색 결과가 없습니다.' : '아직 노트가 없습니다. "+ 새 노트"로 책에서 읽은 내용을 적어 보세요.'}</div>`}
-    <div class="btns"><button class="btn" id="mc">닫기</button></div></div>`;
+  modal.innerHTML = `<div class="card wide"><h3>${tr('지식 노트 (')}${all.length})</h3>
+    <div class="kbar"><input id="kq" type="search" placeholder="${tr('제목·내용·출처 검색')}" value="${esc(kQuery)}"><button class="btn p" id="kadd">${tr('+ 새 노트')}</button></div>
+    ${items.length ? '<ul class="kl">' + items.map((n, i) => `<li data-i="${i}" style="--kc:${esc(n.color || 'var(--line)')}"><b>${esc(n.title)}</b><small>${[n.source && '📖 ' + esc(n.source), n.ref_date && '🕒 ' + esc(showRef(n.ref_date))].filter(Boolean).join(' · ')}</small>${n.body ? `<span>${esc(truncate(n.body, 140))}</span>` : ''}</li>`).join('') + '</ul>' : `<div class="msg">${all.length ? tr('검색 결과가 없습니다.') : tr('아직 노트가 없습니다. "+ 새 노트"로 책에서 읽은 내용을 적어 보세요.')}</div>`}
+    <div class="btns"><button class="btn" id="mc">${tr('닫기')}</button></div></div>`;
   $('mc').onclick = closeModal;
   const kq = $('kq'); kq.oninput = () => { kQuery = kq.value; const pos = kq.selectionStart; renderKnowledgeList(); const k2 = $('kq'); k2.focus(); k2.setSelectionRange(pos, pos); };
   $('kadd').onclick = () => editKnowledge(null);
   modal.querySelectorAll('.kl li').forEach((li) => li.onclick = () => editKnowledge(items[+li.dataset.i]));
 }
 function editKnowledge(n) {
-  modal.innerHTML = `<div class="card wide"><h3>${n ? '노트 수정' : '새 노트'}</h3>
-    <label class="fld">제목<input id="kt" type="text" maxlength="200" placeholder="예: 튤립 버블의 진짜 규모는?"></label>
-    <label class="fld">출처 (책 이름·쪽수 등, 선택)<input id="ks" type="text" maxlength="300" placeholder="예: 〈광기, 패닉, 붕괴〉 2장 p.45"></label>
-    <label class="fld">관련 연도·날짜 (선택, 예: 1637 또는 1637-02-03)<input id="kd" type="text" maxlength="12" placeholder="1637"></label>
-    <div class="fld">색상<div class="swatches" id="kc">${colorPickerHtml(n ? n.color : null)}</div></div>
-    <label class="fld">내용<textarea id="kb" maxlength="20000" placeholder="책에서 읽은 내용, 내 생각, 헷갈리는 점을 자유롭게 적어 두세요"></textarea></label>
+  modal.innerHTML = `<div class="card wide"><h3>${n ? tr('노트 수정') : tr('새 노트')}</h3>
+    <label class="fld">${tr('제목')}<input id="kt" type="text" maxlength="200" placeholder="${tr('예: 튤립 버블의 진짜 규모는?')}"></label>
+    <label class="fld">${tr('출처 (책 이름·쪽수 등, 선택)')}<input id="ks" type="text" maxlength="300" placeholder="${tr('예: 〈광기, 패닉, 붕괴〉 2장 p.45')}"></label>
+    <label class="fld">${tr('관련 연도·날짜 (선택, 예: 1637 또는 1637-02-03)')}<input id="kd" type="text" maxlength="12" placeholder="1637"></label>
+    <div class="fld">${tr('색상')}<div class="swatches" id="kc">${colorPickerHtml(n ? n.color : null)}</div></div>
+    <label class="fld">${tr('내용')}<textarea id="kb" maxlength="20000" placeholder="${tr('책에서 읽은 내용, 내 생각, 헷갈리는 점을 자유롭게 적어 두세요')}"></textarea></label>
     <div class="err" id="kerr"></div>
-    <div class="btns">${n ? '<button class="btn d" id="kdel">삭제</button>' : ''}${n && n.ref_date ? '<button class="btn" id="kgo">연표에서 보기</button>' : ''}<button class="btn" id="kx">목록으로</button><button class="btn p" id="kok">저장</button></div></div>`;
+    <div class="btns">${n ? `<button class="btn d" id="kdel">${tr('삭제')}</button>` : ''}${n && n.ref_date ? `<button class="btn" id="kgo">${tr('연표에서 보기')}</button>` : ''}<button class="btn" id="kx">${tr('목록으로')}</button><button class="btn p" id="kok">${tr('저장')}</button></div></div>`;
   $('kt').value = n ? n.title : ''; $('ks').value = n ? n.source : ''; $('kd').value = n && n.ref_date ? (n.ref_date.endsWith('-01-01') ? n.ref_date.slice(0, 4) : n.ref_date) : ''; $('kb').value = n ? n.body : '';
   $('kx').onclick = renderKnowledgeList;
   if (n && n.ref_date) $('kgo').onclick = () => { const d = isoToDay(n.ref_date); const span = Math.max(S.x1 - S.x0, 365); S.x0 = d - span / 2; S.x1 = d + span / 2; S.rangeKey = ''; clampView(); closeModal(); draw(); };
   if (n) $('kdel').onclick = () => {
-    const b = modal.querySelector('.btns'); b.innerHTML = '<span class="meta" style="margin-right:auto">정말 삭제할까요?</span><button class="btn" id="kno">아니요</button><button class="btn d" id="kyes">삭제</button>';
+    const b = modal.querySelector('.btns'); b.innerHTML = `<span class="meta" style="margin-right:auto">${tr('정말 삭제할까요?')}</span><button class="btn" id="kno">${tr('아니요')}</button><button class="btn d" id="kyes">${tr('삭제')}</button>`;
     $('kno').onclick = () => editKnowledge(n);
-    $('kyes').onclick = async () => { try { await kstore().remove(n.id); S.know = S.know.filter((x) => x.id !== n.id); renderKnowledgeList(); } catch (e) { $('kerr').textContent = '삭제하지 못했습니다: ' + (e.message || e); } };
+    $('kyes').onclick = async () => { try { await kstore().remove(n.id); S.know = S.know.filter((x) => x.id !== n.id); renderKnowledgeList(); } catch (e) { $('kerr').textContent = tr('삭제하지 못했습니다: ') + (e.message || e); } };
   };
   $('kok').onclick = async (ev) => {
-    const title = $('kt').value.trim(); if (!title) { $('kerr').textContent = '제목을 입력하세요.'; return; }
-    const rd = normRefDate($('kd').value); if (rd === null) { $('kerr').textContent = '날짜 형식을 확인하세요. 예: 1637 또는 1637-02-03'; return; }
+    const title = $('kt').value.trim(); if (!title) { $('kerr').textContent = tr('제목을 입력하세요.'); return; }
+    const rd = normRefDate($('kd').value); if (rd === null) { $('kerr').textContent = tr('날짜 형식을 확인하세요. 예: 1637 또는 1637-02-03'); return; }
     const payload = { title, body: $('kb').value, source: $('ks').value.trim(), ref_date: rd, color: pickedColor($('kc')) };
     ev.target.disabled = true;
     try {
       if (n) { const u = await kstore().update(n.id, payload); S.know = S.know.map((x) => x.id === n.id ? u : x); }
       else { const a = await kstore().add(payload); S.know = [a, ...(S.know || [])]; }
       renderKnowledgeList();
-    } catch (e) { ev.target.disabled = false; $('kerr').textContent = '저장하지 못했습니다: ' + (e.message || e); }
+    } catch (e) { ev.target.disabled = false; $('kerr').textContent = tr('저장하지 못했습니다: ') + (e.message || e); }
   };
   $('kt').focus();
 }
@@ -814,9 +816,9 @@ function editKnowledge(n) {
 function openNotesList() {
   modal.hidden = false;
   const st = store();
-  if (!st) { modal.innerHTML = `<div class="card"><h3>메모 목록</h3><div class="msg">로그인하면 내 메모가 여기에 나타납니다.</div><div class="btns"><button class="btn" id="mc">닫기</button><button class="btn p" id="ml">로그인</button></div></div>`; $('mc').onclick = closeModal; $('ml').onclick = () => openAuth(); return; }
+  if (!st) { modal.innerHTML = `<div class="card"><h3>${tr('메모 목록')}</h3><div class="msg">${tr('로그인하면 내 메모가 여기에 나타납니다.')}</div><div class="btns"><button class="btn" id="mc">${tr('닫기')}</button><button class="btn p" id="ml">${tr('로그인')}</button></div></div>`; $('mc').onclick = closeModal; $('ml').onclick = () => openAuth(); return; }
   const items = [...S.notes].sort((a, b) => a.date.localeCompare(b.date));
-  modal.innerHTML = `<div class="card wide"><h3>메모 목록 (${items.length})</h3>${items.length ? '<ul class="nl">' + items.map((n, i) => `<li data-i="${i}">${n.color ? `<i class="cdot" style="background:${esc(n.color)}"></i>` : ''}<b>${esc(n.date)}</b> · ${esc(truncate(n.body, 80))}<small>${n.scope === 'series' ? '지표 · ' + esc(seriesName(n.series_id)) : '연표'}</small></li>`).join('') + '</ul>' : '<div class="msg">아직 메모가 없습니다. 차트를 클릭해서 추가해 보세요.</div>'}<div class="btns"><button class="btn" id="mc">닫기</button></div></div>`;
+  modal.innerHTML = `<div class="card wide"><h3>${tr('메모 목록 (')}${items.length})</h3>${items.length ? '<ul class="nl">' + items.map((n, i) => `<li data-i="${i}">${n.color ? `<i class="cdot" style="background:${esc(n.color)}"></i>` : ''}<b>${esc(n.date)}</b> · ${esc(truncate(n.body, 80))}<small>${n.scope === 'series' ? tr('지표 · ') + esc(seriesName(n.series_id)) : tr('연표')}</small></li>`).join('') + '</ul>' : `<div class="msg">${tr('아직 메모가 없습니다. 차트를 클릭해서 추가해 보세요.')}</div>`}<div class="btns"><button class="btn" id="mc">${tr('닫기')}</button></div></div>`;
   $('mc').onclick = closeModal;
   modal.querySelectorAll('li').forEach((li) => li.onclick = () => {
     const n = items[+li.dataset.i]; const d = isoToDay(n.date); if (n.scope === 'series' && !S.visible.includes(n.series_id)) toggleSeries(n.series_id, true);
@@ -827,6 +829,8 @@ function openNotesList() {
 /* =========================================================== 시작 */
 function applyTheme() { document.documentElement.dataset.theme = S.theme; draw(); }
 async function init() {
+  await I18N.ready; I18N.applyStatic();
+  const lg = $('lang'); if (lg) { lg.value = I18N.lang; lg.onchange = () => I18N.setLang(lg.value); }
   // 화면 요소 연결
   const rb = $('ranges'); RANGES.forEach(([label, key]) => { const b = document.createElement('button'); b.textContent = label; b.dataset.k = String(key); b.onclick = () => setRange(key); rb.appendChild(b); });
   $('zoomIn').onclick = () => zoomAt((S.x0 + S.x1) / 2, 0.7);
@@ -861,13 +865,18 @@ async function init() {
   try {
     const r = await fetch('data/manifest.json?t=' + Date.now()); if (!r.ok) throw new Error(r.status);
     S.manifest = await r.json();
-  } catch (e) { empty.style.display = 'flex'; empty.textContent = '데이터 파일(data/manifest.json)을 찾을 수 없습니다.\nGitHub의 [Actions] 탭에서 \'데이터 갱신\'을 한 번 실행해 주세요.'; return; }
+    for (const m of S.manifest.series) { m.name = td(m.name); m.source = td(m.source); if (m.caution) m.caution = td(m.caution); if (m.detail) m.detail = td(m.detail); }
+  } catch (e) { empty.style.display = 'flex'; empty.textContent = tr('데이터 파일(data/manifest.json)을 찾을 수 없습니다.\nGitHub의 [Actions] 탭에서 \'데이터 갱신\'을 한 번 실행해 주세요.'); return; }
   S.end = isoToDay(S.manifest.end);
-  $('gen').textContent = `데이터 기준일 ${S.manifest.end} · 갱신 ${S.manifest.generated.slice(0, 10)}`;
-  try { const r = await fetch('events.json'); S.events = (await r.json()).map((e) => ({ ...e, day: isoToDay(e.date) })); } catch (e) { S.events = []; }
+  $('gen').textContent = `${tr('데이터 기준일')} ${S.manifest.end} ${tr('· 갱신')} ${S.manifest.generated.slice(0, 10)}`;
+  try { const r = await fetch('events.json'); S.events = (await r.json()).map((e) => ({ ...e, title: td(e.title), desc: td(e.desc || ''), day: isoToDay(e.date) })); } catch (e) { S.events = []; }
   try {
     const r = await fetch('offices.json?v=' + encodeURIComponent(S.manifest.generated || '')); const o = await r.json();
-    for (const role of o.roles) role.items = role.items.map(([name, start, end, tk, label, extra]) => ({ name, start, end, tk, label, extra, d0: isoToDay(start), d1: end ? isoToDay(end) : null }));
+    for (const role of o.roles) {
+      role.name = td(role.name); role.tend_title = td(role.tend_title); role.source = td(role.source); if (role.caution) role.caution = td(role.caution);
+      for (const k of Object.keys(role.legend)) role.legend[k] = [td(role.legend[k][0]), role.legend[k][1]];
+    }
+    for (const role of o.roles) role.items = role.items.map(([name, start, end, tk, label, extra]) => ({ name: td(name), start, end, tk, label: td(label), extra: extra ? td(extra) : extra, d0: isoToDay(start), d1: end ? isoToDay(end) : null }));
     S.offices = o;
   } catch (e) { S.offices = null; }
   S.visible = S.visible.filter((id) => !!metaOf(id));
