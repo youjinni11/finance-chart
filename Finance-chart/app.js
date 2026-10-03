@@ -402,7 +402,8 @@ function renderChips(list) {
 
 /* =========================================================== 확대/축소/이동 */
 function clampView() {
-  const total = Math.max(60, S.end - MIN_DAY), lo = MIN_DAY - total * 0.02, hi = S.end + total * 0.02;
+  const PAD = 75; /* 좌우 여백은 고정 약 2.5개월 (기간 비율이 아님) */
+  const lo = MIN_DAY - PAD, hi = S.end + PAD;
   let span = S.x1 - S.x0; span = Math.min(Math.max(span, 5), hi - lo);
   if (S.x0 < lo) { S.x0 = lo; S.x1 = lo + span; }
   if (S.x1 > hi) { S.x1 = hi; S.x0 = hi - span; }
@@ -412,7 +413,7 @@ function setRange(key) {
   S.rangeKey = key; closePop();
   if (key === 'max') { S.x0 = MIN_DAY; S.x1 = S.end; }
   else if (key === 'fit') {
-    const l = visibleList(); if (l.length) { const a = Math.min(...l.map((s) => s.t[0])), b = Math.max(...l.map((s) => s.t[s.t.length - 1])); const pd = Math.max(5, (b - a) * 0.03); S.x0 = a - pd; S.x1 = Math.max(b, S.end) + pd; } else { S.x0 = MIN_DAY; S.x1 = S.end; }
+    const l = visibleList(); if (l.length) { const a = Math.min(...l.map((s) => s.t[0])), b = Math.max(...l.map((s) => s.t[s.t.length - 1])); const pd = Math.min(75, Math.max(5, (b - a) * 0.03)); S.x0 = a - pd; S.x1 = Math.max(b, S.end) + pd; } else { S.x0 = MIN_DAY; S.x1 = S.end; }
   } else { S.x1 = S.end; S.x0 = S.end - Math.round(key * 365.25); }
   clampView(); draw();
 }
