@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T11:12:51+00:00",
+ "generated": "2026-10-03T11:19:46+00:00",
  "end": "2026-10-02",
  "series": [
   {
@@ -151,6 +151,25 @@
    "start": "1833-01-01",
    "end": "2026-09-01",
    "n": 2325,
+   "updated": "2026-10-03",
+   "detail": null
+  },
+  {
+   "id": "silver_usd",
+   "name": "은 가격 (USD/온스, 월별)",
+   "group": "metals",
+   "unit": "USD",
+   "kind": "line",
+   "freq": "monthly",
+   "source": "세계은행 Commodity Markets(Pink Sheet) Silver, 월평균 1960~",
+   "url": "https://www.worldbank.org/en/research/commodity-markets",
+   "caution": "일별이 아닌 월별 자료. 열 위치·단위($/toz)는 첫 수집 결과로 검증 필요",
+   "hidden": false,
+   "order": 2,
+   "status": "ok",
+   "start": "1960-01-01",
+   "end": "2026-09-01",
+   "n": 801,
    "updated": "2026-10-03",
    "detail": null
   },
