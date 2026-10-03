@@ -63,9 +63,10 @@ const S = {
   theme: prefs.theme || 'dark',
   x0: MIN_DAY, x1: MIN_DAY + 1, rangeKey: 'max',
   notes: [], events: [], user: null,
+  offices: null, offOn: Array.isArray(prefs.offOn) ? prefs.offOn : ['us_president', 'fed_chair'],
   hover: null, hits: [], P: null, view: null,
 };
-function savePrefs() { lsSet('fc_prefs_v1', { visible: S.visible, pairs: S.pairs, colors: S.colors, mode: S.mode, log: S.log, showEvents: S.showEvents, notesMode: S.notesMode, theme: S.theme }); }
+function savePrefs() { lsSet('fc_prefs_v1', { offOn: S.offOn, visible: S.visible, pairs: S.pairs, colors: S.colors, mode: S.mode, log: S.log, showEvents: S.showEvents, notesMode: S.notesMode, theme: S.theme }); }
 
 /* =========================================================== 데이터 로딩 */
 const pairId = (b, q) => `pair:${b}:${q}`;
@@ -210,7 +211,7 @@ function render() {
   const rebase = S.mode === 'rebase' || forced;
   if (rebase) units = ['idx'];
   const twoAxes = !rebase && units.length === 2;
-  const P = { l: 62, r: twoAxes ? 62 : 16, t: 26, lane: 24, axisH: 24 };
+  const P = { l: 62, r: twoAxes ? 62 : 16, t: 26, ev: 24, lane: 24 + offActive().length * OFF_H, axisH: 24 };
   P.w = Math.max(50, W - P.l - P.r); P.b = H - P.axisH - P.lane - 4; P.h = Math.max(40, P.b - P.t);
   S.P = P;
   const noteEl = $('notice');
@@ -343,12 +344,52 @@ function drawSeries(it, a) {
   }
 }
 
+/* =========================================================== 임기 띠 (대통령·연준 의장·재무장관) */
+const OFF_H = 16;
+const OFF_SHORT = { us_president: '미 대통령', fed_chair: '연준 의장', us_treasury: '미 재무장관', kr_president: '한 대통령', kr_finance: '한 재경장관' };
+function offActive() { return S.offices ? S.offices.roles.filter((r) => S.offOn.includes(r.id)) : []; }
+function drawOffices() {
+  const P = S.P, roles = offActive(); if (!roles.length) return;
+  const FONT = '11px -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+  roles.forEach((r, k) => {
+    const y = P.b + P.ev + k * OFF_H + 1, h = OFF_H - 2;
+    ctx.font = '10px -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = css.axis;
+    ctx.fillText(OFF_SHORT[r.id] || r.name, P.l - 6, y + h / 2);
+    ctx.save(); ctx.beginPath(); ctx.rect(P.l, y - 1, P.w, h + 2); ctx.clip();
+    ctx.font = FONT;
+    for (const it of r.items) {
+      const a = xOf(it.d0), b = xOf(it.d1 == null ? S.end : it.d1);
+      if (b < P.l || a > P.l + P.w) continue;
+      const col = (r.legend[it.tk] || ['', '#9ca3af'])[1];
+      const x0 = Math.max(a, P.l), x1 = Math.min(b, P.l + P.w), w = x1 - x0;
+      ctx.globalAlpha = 0.85; ctx.fillStyle = col; ctx.fillRect(x0, y, Math.max(1, w - 1), h); ctx.globalAlpha = 1;
+      if (w > 22) {
+        let t = it.name; const m = ctx.measureText(t).width;
+        if (m > w - 6) { const n = Math.max(1, Math.floor(t.length * (w - 10) / m)); t = n >= t.length ? t : (n > 1 ? t.slice(0, n) + '…' : ''); }
+        if (t) { ctx.fillStyle = '#0b0f14'; ctx.textAlign = 'left'; ctx.fillText(t, x0 + 4, y + h / 2 + 0.5); }
+      }
+      if (w > 0) S.hits.push({ type: 'office', x: (x0 + x1) / 2, y: y + h / 2, r: 0, ref: { role: r, it }, box: { x: x0, y, w: Math.max(1, w), h } });
+    }
+    ctx.restore();
+  });
+}
+function officeText(o) {
+  const { role, it } = o;
+  return { title: `${it.name}`, term: `${it.start} ~ ${it.end || '현재'}`, tend: `${role.tend_title}: ${it.label}`, extra: it.extra || '', col: (role.legend[it.tk] || ['', '#9ca3af'])[1] };
+}
+function showOffice(o, px, py) {
+  const t = officeText(o), r = o.role;
+  pop.innerHTML = `<h5><i class="cdot" style="background:${esc(t.col)}"></i>${esc(t.title)}</h5><div class="meta">${esc(r.name)} · ${esc(t.term)}</div><div class="body"><b>${esc(t.tend)}</b>${t.extra ? '<br>' + esc(t.extra) : ''}</div><div class="meta">출처: <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.source)}</a></div><div class="meta warn">⚠ ${esc(String(r.caution).replace(/^⚠\s*/, ''))}</div><div class="btns"><button class="btn" data-a="x">닫기</button></div>`;
+  pop.querySelector('[data-a=x]').onclick = closePop; placePop(px, py);
+}
+
 function noteVisible(n) { return n.scope === 'timeline' || S.visible.includes(n.series_id); }
 function noteDisplay(n) { return S.notesMode === 'own' ? n.display : S.notesMode; }
 function truncate(s, k) { s = s.replace(/\s+/g, ' ').trim(); return s.length > k ? s.slice(0, k - 1) + '…' : s; }
 
 function drawLaneAndNotes(items, ax) {
-  const P = S.P, laneY = P.b + P.lane / 2 + 1;
+  const P = S.P, laneY = P.b + P.ev / 2 + 1;
+  drawOffices();
   // 사건
   if (S.showEvents) {
     ctx.fillStyle = css.event;
@@ -467,6 +508,7 @@ function hover(px, py) {
   const tip = $('tip');
   if (hit) {
     if (hit.type === 'event') { const e = hit.ref; tip.innerHTML = `<div class="d">${esc(e.date)} · ${esc(e.title)}</div><div class="t">${esc(e.desc || '')}</div><div class="r"><small class="warn">⚠ 연도·날짜는 검증 필요</small></div>`; }
+    else if (hit.type === 'office') { const t = officeText(hit.ref); tip.innerHTML = `<div class="d">${esc(hit.ref.role.name)} · ${esc(t.title)}</div><div class="r"><i style="--c:${t.col}"></i><span>${esc(t.tend)}</span></div><div class="t">${esc(t.term)}${t.extra ? '<br>' + esc(t.extra) : ''}</div><div class="r"><small class="warn">⚠ 성향 분류는 해석이 들어간 요약 · 클릭하면 출처</small></div>`; }
     else { const n = hit.ref; tip.innerHTML = `<div class="d">${esc(n.date)} · 메모</div><div class="t">${esc(truncate(n.body, 90))}</div><div class="r"><small>클릭하면 수정·삭제</small></div>`; }
   } else {
     const rows = []; const dd = Math.round(S.hover.d);
@@ -494,7 +536,7 @@ function flash(msg) { const n = $('notice'); n.textContent = msg; setTimeout(() 
 function onClick(px, py) {
   const P = S.P; closePop();
   const hit = hitAt(px, py);
-  if (hit) { hideTip(); if (hit.type === 'note') return showNote(hit.ref, px, py); return showEvent(hit.ref, px, py); }
+  if (hit) { hideTip(); if (hit.type === 'note') return showNote(hit.ref, px, py); if (hit.type === 'office') return showOffice(hit.ref, px, py); return showEvent(hit.ref, px, py); }
   if (px < P.l || px > P.l + P.w || py < P.t || py > P.b + P.lane) return;
   hideTip();
   const day = Math.round(dOf(px));
@@ -580,6 +622,18 @@ function buildSide() {
       }
     }
     if (any) box.appendChild(g);
+  }
+  if (S.offices && (!q || '임기 대통령 의장 장관 성향'.includes(q) || S.offices.roles.some((r) => r.name.includes(q)))) {
+    const g = document.createElement('div'); g.className = 'grp'; g.innerHTML = '<h4>임기 · 성향 (차트 아래 띠)</h4>';
+    for (const r of S.offices.roles) {
+      const on = S.offOn.includes(r.id);
+      const row = document.createElement('div'); row.className = 'row' + (on ? ' on' : ''); row.style.setProperty('--c', '#9ca3af'); row.title = r.source;
+      const lg = Object.values(r.legend).map(([n, c]) => `<span class="lg"><i style="background:${c}"></i>${esc(n)}</span>`).join('');
+      row.innerHTML = `<div class="sw"></div><div class="nm"><b>${esc(r.name)}</b><small>성향 = ${esc(r.tend_title)}</small><div class="lgs">${lg}</div></div><div class="tools"><span class="warn" title="${esc('⚠ ' + String(r.caution).replace(/^⚠\s*/, ''))}">⚠</span><a href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc('출처: ' + r.source)}">ⓘ</a></div>`;
+      row.addEventListener('click', (e) => { if (e.target.closest('a')) return; S.offOn = on ? S.offOn.filter((x) => x !== r.id) : S.offOn.concat(r.id); savePrefs(); closePop(); buildSide(); draw(); });
+      g.appendChild(row);
+    }
+    box.appendChild(g);
   }
 }
 function rowEl(m, id) {
@@ -811,6 +865,11 @@ async function init() {
   S.end = isoToDay(S.manifest.end);
   $('gen').textContent = `데이터 기준일 ${S.manifest.end} · 갱신 ${S.manifest.generated.slice(0, 10)}`;
   try { const r = await fetch('events.json'); S.events = (await r.json()).map((e) => ({ ...e, day: isoToDay(e.date) })); } catch (e) { S.events = []; }
+  try {
+    const r = await fetch('offices.json?v=' + encodeURIComponent(S.manifest.generated || '')); const o = await r.json();
+    for (const role of o.roles) role.items = role.items.map(([name, start, end, tk, label, extra]) => ({ name, start, end, tk, label, extra, d0: isoToDay(start), d1: end ? isoToDay(end) : null }));
+    S.offices = o;
+  } catch (e) { S.offices = null; }
   S.visible = S.visible.filter((id) => !!metaOf(id));
   buildSide();
   S.x0 = MIN_DAY; S.x1 = S.end; draw();
