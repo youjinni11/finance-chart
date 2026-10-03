@@ -127,8 +127,9 @@ const LocalStore = {
   async update(id, p) { const all = lsGet('fc_notes_local', []); const i = all.findIndex((x) => x.id === id); if (i >= 0) all[i] = { ...all[i], ...p }; lsSet('fc_notes_local', all); return all[i]; },
   async remove(id) { lsSet('fc_notes_local', lsGet('fc_notes_local', []).filter((x) => x.id !== id)); },
 };
-const fromRow = (r) => ({ id: r.id, date: r.note_date, value: r.value, body: r.body, scope: r.scope, series_id: r.series_id, display: r.display });
-const toRow = (n) => ({ note_date: n.date, value: n.value ?? null, body: n.body, scope: n.scope, series_id: n.scope === 'series' ? n.series_id : null, display: n.display });
+const NOTE_COLORS = ['#ef5350', '#ff9800', '#fdd835', '#66bb6a', '#26a69a', '#42a5f5', '#7e57c2', '#ec407a'];
+const fromRow = (r) => ({ id: r.id, date: r.note_date, value: r.value, body: r.body, scope: r.scope, series_id: r.series_id, display: r.display, color: r.color || null });
+const toRow = (n) => ({ note_date: n.date, value: n.value ?? null, body: n.body, scope: n.scope, series_id: n.scope === 'series' ? n.series_id : null, display: n.display, color: n.color || null });
 const RemoteStore = {
   name: 'supabase',
   async list() { const { data, error } = await sb.from('chart_notes').select('*').order('note_date'); if (error) throw error; return data.map(fromRow); },
@@ -139,6 +140,7 @@ const RemoteStore = {
 const FORCE_LOCAL = /[?&]local\b/.test(location.search);
 function store() { return FORCE_LOCAL ? LocalStore : (sb && S.user ? RemoteStore : null); }
 async function loadNotes() {
+  S.know = null; /* 지식 노트는 열 때 다시 불러옴 (계정이 바뀌었을 수 있음) */
   const st = store();
   if (!st) { S.notes = []; draw(); return; }
   try { S.notes = await st.list(); } catch (e) { console.warn(e); S.notes = []; flash('메모를 불러오지 못했습니다: ' + (e.message || e)); }
@@ -368,6 +370,7 @@ function drawLaneAndNotes(items, ax) {
       y = ax[it.axis].toY(it.s.v[i] / it.base); color = it.s.color;
       if (y < P.t || y > P.b) continue;
     }
+    if (n.color) color = n.color;
     const mode = noteDisplay(n);
     ctx.fillStyle = color; ctx.strokeStyle = css.bg; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 7); ctx.stroke(); ctx.fill(); ctx.lineWidth = 1;
@@ -509,7 +512,7 @@ function showEvent(e, px, py) {
 }
 function seriesName(id) { const m = id && metaOf(id); return m ? m.name : (id || ''); }
 function showNote(n, px, py) {
-  pop.innerHTML = `<h5>${esc(n.date)} 메모</h5><div class="meta">저장 위치: ${n.scope === 'series' ? '지표 · ' + esc(seriesName(n.series_id)) : '연표(항상 표시)'} · 표시: ${n.display === 'dot' ? '점' : '글씨'}</div><div class="body">${esc(n.body)}</div><div class="btns"><button class="btn d" data-a="del">삭제</button><button class="btn" data-a="edit">수정</button><button class="btn" data-a="x">닫기</button></div>`;
+  pop.innerHTML = `<h5>${n.color ? `<i class="cdot" style="background:${esc(n.color)}"></i>` : ''}${esc(n.date)} 메모</h5><div class="meta">저장 위치: ${n.scope === 'series' ? '지표 · ' + esc(seriesName(n.series_id)) : '연표(항상 표시)'} · 표시: ${n.display === 'dot' ? '점' : '글씨'}</div><div class="body">${esc(n.body)}</div><div class="btns"><button class="btn d" data-a="del">삭제</button><button class="btn" data-a="edit">수정</button><button class="btn" data-a="x">닫기</button></div>`;
   pop.querySelector('[data-a=x]').onclick = closePop;
   pop.querySelector('[data-a=edit]').onclick = () => editNote(n, isoToDay(n.date), px, py);
   pop.querySelector('[data-a=del]').onclick = () => {
@@ -537,9 +540,11 @@ function editNote(n, day, px, py) {
       <label><input type="radio" name="dp" value="dot" ${display === 'dot' ? 'checked' : ''}> 작은 점 (클릭하면 보임)</label>
       <label><input type="radio" name="dp" value="label" ${display === 'label' ? 'checked' : ''}> 글씨로 항상 표시</label>
     </div>
+    <div class="f"><b>색상</b><div class="swatches" id="noteColors">${colorPickerHtml(n ? n.color : null)}</div></div>
     <div class="err" id="perr"></div>
     <div class="btns"><button class="btn" data-a="x">취소</button><button class="btn p" data-a="ok">저장</button></div>`;
   const ta = pop.querySelector('textarea'); ta.value = n ? n.body : '';
+  bindColorPicker(pop.querySelector('#noteColors'));
   const sel = pop.querySelector('#scSel'); const sync = () => { sel.style.display = pop.querySelector('[name=sc]:checked').value === 'series' ? 'block' : 'none'; }; pop.querySelectorAll('[name=sc]').forEach((r) => r.onchange = sync); sync();
   pop.querySelector('[data-a=x]').onclick = closePop;
   pop.querySelector('[data-a=ok]').onclick = async (ev) => {
@@ -547,7 +552,7 @@ function editNote(n, day, px, py) {
     const sc = pop.querySelector('[name=sc]:checked').value, dp = pop.querySelector('[name=dp]:checked').value;
     const sid = sc === 'series' ? sel.value : null; if (sc === 'series' && !sid) { pop.querySelector('#perr').textContent = '지표를 선택하세요.'; return; }
     let value = null; if (sid) { const d = S.data.get(sid); if (d) { const i = lastLE(d.t, day); if (i >= 0) value = d.v[i]; } }
-    const payload = { date, value, body, scope: sc, series_id: sid, display: dp };
+    const payload = { date, value, body, scope: sc, series_id: sid, display: dp, color: pickedColor(pop.querySelector('#noteColors')) };
     ev.target.disabled = true;
     try {
       if (n) { const u = await store().update(n.id, payload); S.notes = S.notes.map((x) => x.id === n.id ? u : x); }
@@ -660,13 +665,104 @@ function openAuth(msg) {
 }
 function updateAuthBtn() { const b = $('btnAuth'); b.textContent = FORCE_LOCAL ? '로컬 모드' : S.user ? (S.user.email.split('@')[0]) : '로그인'; b.classList.toggle('primary', !S.user && !FORCE_LOCAL); }
 
+/* =========================================================== 색상 선택 (메모·지식 노트 공용) */
+function colorPickerHtml(cur) {
+  const none = `<label class="sw-c none" title="자동 (기본 색)"><input type="radio" name="ncol" value="" ${cur ? '' : 'checked'}><span>자동</span></label>`;
+  return none + NOTE_COLORS.map((c) => `<label class="sw-c" title="${c}"><input type="radio" name="ncol" value="${c}" ${cur === c ? 'checked' : ''}><span style="background:${c}"></span></label>`).join('');
+}
+function bindColorPicker() { /* 라디오 버튼이라 따로 연결할 것이 없음 */ }
+function pickedColor(box) { const r = box && box.querySelector('input[name=ncol]:checked'); return r && r.value ? r.value : null; }
+
+/* =========================================================== 지식 노트 (차트와 별개로 책에서 읽은 내용 정리) */
+const KLocal = {
+  async list() { return lsGet('fc_know_local', []); },
+  async add(n) { const all = lsGet('fc_know_local', []); const now = new Date().toISOString(); const x = { ...n, id: 'k' + Date.now() + Math.random().toString(36).slice(2, 6), created_at: now, updated_at: now }; all.push(x); lsSet('fc_know_local', all); return x; },
+  async update(id, p) { const all = lsGet('fc_know_local', []); const i = all.findIndex((x) => x.id === id); if (i >= 0) all[i] = { ...all[i], ...p, updated_at: new Date().toISOString() }; lsSet('fc_know_local', all); return all[i]; },
+  async remove(id) { lsSet('fc_know_local', lsGet('fc_know_local', []).filter((x) => x.id !== id)); },
+};
+const kFrom = (r) => ({ id: r.id, title: r.title, body: r.body || '', source: r.source || '', ref_date: r.ref_date || '', color: r.color || null, created_at: r.created_at, updated_at: r.updated_at });
+const kTo = (n) => ({ title: n.title, body: n.body || '', source: n.source || null, ref_date: n.ref_date || null, color: n.color || null });
+const KRemote = {
+  async list() { const { data, error } = await sb.from('knowledge_notes').select('*').order('created_at', { ascending: false }); if (error) throw error; return data.map(kFrom); },
+  async add(n) { const { data, error } = await sb.from('knowledge_notes').insert(kTo(n)).select().single(); if (error) throw error; return kFrom(data); },
+  async update(id, p) { const { data, error } = await sb.from('knowledge_notes').update(kTo(p)).eq('id', id).select().single(); if (error) throw error; return kFrom(data); },
+  async remove(id) { const { error } = await sb.from('knowledge_notes').delete().eq('id', id); if (error) throw error; },
+};
+function kstore() { return FORCE_LOCAL ? KLocal : (sb && S.user ? KRemote : null); }
+async function loadKnowledge() {
+  const st = kstore();
+  if (!st) { S.know = []; return; }
+  try { S.know = await st.list(); } catch (e) { console.warn(e); S.know = []; flash('지식 노트를 불러오지 못했습니다: ' + (e.message || e)); }
+}
+// 입력 "1602" / "1602-03" / "1602-03-20" → "YYYY-MM-DD" (잘못된 형식이면 null)
+function normRefDate(s) {
+  s = (s || '').trim(); if (!s) return '';
+  let m = s.match(/^(\d{4})$/); if (m) return `${m[1]}-01-01`;
+  m = s.match(/^(\d{4})[-.](\d{1,2})$/); if (m) return `${m[1]}-${pad2(+m[2])}-01`;
+  m = s.match(/^(\d{4})[-.](\d{1,2})[-.](\d{1,2})$/); if (m) { const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); if (d.getUTCMonth() === +m[2] - 1) return `${m[1]}-${pad2(+m[2])}-${pad2(+m[3])}`; }
+  return null;
+}
+const showRef = (d) => (d ? (d.endsWith('-01-01') ? d.slice(0, 4) + '년' : d) : '');
+let kQuery = '';
+
+async function openKnowledge() {
+  modal.hidden = false;
+  const st = kstore();
+  if (!st) { modal.innerHTML = `<div class="card"><h3>지식 노트</h3><div class="msg">책에서 읽은 내용을 적어 두는 공간입니다.\n로그인하면 사용할 수 있어요.</div><div class="btns"><button class="btn" id="mc">닫기</button><button class="btn p" id="ml">로그인</button></div></div>`; $('mc').onclick = closeModal; $('ml').onclick = () => openAuth(); return; }
+  if (!S.know) await loadKnowledge();
+  renderKnowledgeList();
+}
+function renderKnowledgeList() {
+  const q = kQuery.trim().toLowerCase();
+  const all = S.know || [];
+  const items = all.filter((n) => !q || (n.title + ' ' + n.body + ' ' + n.source).toLowerCase().includes(q));
+  modal.innerHTML = `<div class="card wide"><h3>지식 노트 (${all.length})</h3>
+    <div class="kbar"><input id="kq" type="search" placeholder="제목·내용·출처 검색" value="${esc(kQuery)}"><button class="btn p" id="kadd">+ 새 노트</button></div>
+    ${items.length ? '<ul class="kl">' + items.map((n, i) => `<li data-i="${i}" style="--kc:${esc(n.color || 'var(--line)')}"><b>${esc(n.title)}</b><small>${[n.source && '📖 ' + esc(n.source), n.ref_date && '🕒 ' + esc(showRef(n.ref_date))].filter(Boolean).join(' · ')}</small>${n.body ? `<span>${esc(truncate(n.body, 140))}</span>` : ''}</li>`).join('') + '</ul>' : `<div class="msg">${all.length ? '검색 결과가 없습니다.' : '아직 노트가 없습니다. "+ 새 노트"로 책에서 읽은 내용을 적어 보세요.'}</div>`}
+    <div class="btns"><button class="btn" id="mc">닫기</button></div></div>`;
+  $('mc').onclick = closeModal;
+  const kq = $('kq'); kq.oninput = () => { kQuery = kq.value; const pos = kq.selectionStart; renderKnowledgeList(); const k2 = $('kq'); k2.focus(); k2.setSelectionRange(pos, pos); };
+  $('kadd').onclick = () => editKnowledge(null);
+  modal.querySelectorAll('.kl li').forEach((li) => li.onclick = () => editKnowledge(items[+li.dataset.i]));
+}
+function editKnowledge(n) {
+  modal.innerHTML = `<div class="card wide"><h3>${n ? '노트 수정' : '새 노트'}</h3>
+    <label class="fld">제목<input id="kt" type="text" maxlength="200" placeholder="예: 튤립 버블의 진짜 규모는?"></label>
+    <label class="fld">출처 (책 이름·쪽수 등, 선택)<input id="ks" type="text" maxlength="300" placeholder="예: 〈광기, 패닉, 붕괴〉 2장 p.45"></label>
+    <label class="fld">관련 연도·날짜 (선택, 예: 1637 또는 1637-02-03)<input id="kd" type="text" maxlength="12" placeholder="1637"></label>
+    <div class="fld">색상<div class="swatches" id="kc">${colorPickerHtml(n ? n.color : null)}</div></div>
+    <label class="fld">내용<textarea id="kb" maxlength="20000" placeholder="책에서 읽은 내용, 내 생각, 헷갈리는 점을 자유롭게 적어 두세요"></textarea></label>
+    <div class="err" id="kerr"></div>
+    <div class="btns">${n ? '<button class="btn d" id="kdel">삭제</button>' : ''}${n && n.ref_date ? '<button class="btn" id="kgo">연표에서 보기</button>' : ''}<button class="btn" id="kx">목록으로</button><button class="btn p" id="kok">저장</button></div></div>`;
+  $('kt').value = n ? n.title : ''; $('ks').value = n ? n.source : ''; $('kd').value = n && n.ref_date ? (n.ref_date.endsWith('-01-01') ? n.ref_date.slice(0, 4) : n.ref_date) : ''; $('kb').value = n ? n.body : '';
+  $('kx').onclick = renderKnowledgeList;
+  if (n && n.ref_date) $('kgo').onclick = () => { const d = isoToDay(n.ref_date); const span = Math.max(S.x1 - S.x0, 365); S.x0 = d - span / 2; S.x1 = d + span / 2; S.rangeKey = ''; clampView(); closeModal(); draw(); };
+  if (n) $('kdel').onclick = () => {
+    const b = modal.querySelector('.btns'); b.innerHTML = '<span class="meta" style="margin-right:auto">정말 삭제할까요?</span><button class="btn" id="kno">아니요</button><button class="btn d" id="kyes">삭제</button>';
+    $('kno').onclick = () => editKnowledge(n);
+    $('kyes').onclick = async () => { try { await kstore().remove(n.id); S.know = S.know.filter((x) => x.id !== n.id); renderKnowledgeList(); } catch (e) { $('kerr').textContent = '삭제하지 못했습니다: ' + (e.message || e); } };
+  };
+  $('kok').onclick = async (ev) => {
+    const title = $('kt').value.trim(); if (!title) { $('kerr').textContent = '제목을 입력하세요.'; return; }
+    const rd = normRefDate($('kd').value); if (rd === null) { $('kerr').textContent = '날짜 형식을 확인하세요. 예: 1637 또는 1637-02-03'; return; }
+    const payload = { title, body: $('kb').value, source: $('ks').value.trim(), ref_date: rd, color: pickedColor($('kc')) };
+    ev.target.disabled = true;
+    try {
+      if (n) { const u = await kstore().update(n.id, payload); S.know = S.know.map((x) => x.id === n.id ? u : x); }
+      else { const a = await kstore().add(payload); S.know = [a, ...(S.know || [])]; }
+      renderKnowledgeList();
+    } catch (e) { ev.target.disabled = false; $('kerr').textContent = '저장하지 못했습니다: ' + (e.message || e); }
+  };
+  $('kt').focus();
+}
+
 /* =========================================================== 메모 목록 */
 function openNotesList() {
   modal.hidden = false;
   const st = store();
   if (!st) { modal.innerHTML = `<div class="card"><h3>메모 목록</h3><div class="msg">로그인하면 내 메모가 여기에 나타납니다.</div><div class="btns"><button class="btn" id="mc">닫기</button><button class="btn p" id="ml">로그인</button></div></div>`; $('mc').onclick = closeModal; $('ml').onclick = () => openAuth(); return; }
   const items = [...S.notes].sort((a, b) => a.date.localeCompare(b.date));
-  modal.innerHTML = `<div class="card wide"><h3>메모 목록 (${items.length})</h3>${items.length ? '<ul class="nl">' + items.map((n, i) => `<li data-i="${i}"><b>${esc(n.date)}</b> · ${esc(truncate(n.body, 80))}<small>${n.scope === 'series' ? '지표 · ' + esc(seriesName(n.series_id)) : '연표'}</small></li>`).join('') + '</ul>' : '<div class="msg">아직 메모가 없습니다. 차트를 클릭해서 추가해 보세요.</div>'}<div class="btns"><button class="btn" id="mc">닫기</button></div></div>`;
+  modal.innerHTML = `<div class="card wide"><h3>메모 목록 (${items.length})</h3>${items.length ? '<ul class="nl">' + items.map((n, i) => `<li data-i="${i}">${n.color ? `<i class="cdot" style="background:${esc(n.color)}"></i>` : ''}<b>${esc(n.date)}</b> · ${esc(truncate(n.body, 80))}<small>${n.scope === 'series' ? '지표 · ' + esc(seriesName(n.series_id)) : '연표'}</small></li>`).join('') + '</ul>' : '<div class="msg">아직 메모가 없습니다. 차트를 클릭해서 추가해 보세요.</div>'}<div class="btns"><button class="btn" id="mc">닫기</button></div></div>`;
   $('mc').onclick = closeModal;
   modal.querySelectorAll('li').forEach((li) => li.onclick = () => {
     const n = items[+li.dataset.i]; const d = isoToDay(n.date); if (n.scope === 'series' && !S.visible.includes(n.series_id)) toggleSeries(n.series_id, true);
@@ -684,6 +780,7 @@ async function init() {
   $('btnTheme').onclick = () => { S.theme = S.theme === 'dark' ? 'light' : 'dark'; savePrefs(); applyTheme(); };
   $('btnAuth').onclick = () => (FORCE_LOCAL ? null : openAuth());
   $('btnNotes').onclick = openNotesList;
+  $('btnKnow').onclick = openKnowledge;
   $('btnSide').onclick = () => $('side').classList.toggle('open');
   $('search').oninput = buildSide;
   $('optRebase').checked = S.mode === 'rebase'; $('optRebase').onchange = (e) => { S.mode = e.target.checked ? 'rebase' : 'abs'; savePrefs(); draw(); };
