@@ -212,6 +212,45 @@ def ecos_monthly(stat, item, start="196001"):
     return [(parse_date(r["TIME"]), r["DATA_VALUE"]) for r in rows if r.get("DATA_VALUE") not in (None, "")]
 
 
+def silver_monthly():
+    """세계은행 Pink Sheet(CMO-Historical-Data-Monthly.xlsx) 의 은(Silver, $/toz) 월평균, 1960~.
+    파일 주소에 해시가 있어 매달 바뀌므로, 원자재 페이지에서 현재 링크를 찾아 받는다."""
+    import openpyxl
+
+    page = http_get("https://www.worldbank.org/en/research/commodity-markets").text
+    m = re.search(r"https://thedocs\.worldbank\.org/[^\"'\s<>]*CMO-Historical-Data-Monthly\.xlsx", page)
+    if not m:
+        raise RuntimeError("세계은행 Pink Sheet 엑셀 링크를 페이지에서 찾지 못함")
+    path = download_file(m.group(0), ".xlsx")
+    try:
+        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        ws = wb["Monthly Prices"] if "Monthly Prices" in wb.sheetnames else wb.worksheets[0]
+        rows = list(ws.iter_rows(values_only=True))
+    finally:
+        os.unlink(path)
+    col = None
+    for r in rows[:15]:
+        for c, cell in enumerate(r):
+            if isinstance(cell, str) and cell.strip().lower() == "silver":
+                col = c
+                break
+        if col is not None:
+            break
+    if col is None:
+        raise RuntimeError("Pink Sheet 에서 Silver 열을 찾지 못함")
+    pts = []
+    for r in rows:
+        if not r or not isinstance(r[0], str) or col >= len(r):
+            continue
+        mm = re.match(r"^(\d{4})M(\d{2})$", r[0].strip())
+        v = r[col]
+        if mm and isinstance(v, (int, float)):
+            pts.append((dt.date(int(mm[1]), int(mm[2]), 1), v))
+    if len(pts) < 100:
+        raise RuntimeError(f"은 가격 행이 너무 적음({len(pts)})")
+    return pts
+
+
 def binance(symbol):
     bases = ["https://data-api.binance.vision", "https://api.binance.com", "https://api1.binance.com"]
     day_ms = 86400000
@@ -482,6 +521,9 @@ SERIES = [
     S("gold_usd", "금 가격 (USD/온스, 월별)", "metals", "USD", gold_monthly, freq="monthly",
       source="datasets/gold-prices: 1833~1959 Timothy Green, 1960~ 세계은행 Commodity Markets(월 평균)",
       url="https://github.com/datasets/gold-prices", caution="일별이 아닌 월별 자료", order=1),
+    S("silver_usd", "은 가격 (USD/온스, 월별)", "metals", "USD", silver_monthly, freq="monthly",
+      source="세계은행 Commodity Markets(Pink Sheet) Silver, 월평균 1960~",
+      url="https://www.worldbank.org/en/research/commodity-markets", caution="일별이 아닌 월별 자료. 열 위치·단위($/toz)는 첫 수집 결과로 검증 필요", order=2),
     S("wti", "WTI 원유 (USD/배럴)", "metals", "USD", lambda: fred("DCOILWTICO"),
       source="FRED DCOILWTICO (미 에너지정보청), 일별 1986~", url=FRED_URL + "DCOILWTICO", order=3),
     # 암호화폐
