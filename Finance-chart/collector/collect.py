@@ -382,17 +382,48 @@ def boe_bank_rate():
 
 
 def nl_gov_yield():
+    """Schmelzing 자료의 'IV. Country level' 시트에서 Holland(네덜란드) 명목 장기금리 열을 찾는다."""
+    import openpyxl
+
     path = download_file(SCHMELZING, ".xlsx")
-    wb, cands = excel_candidates(path, r"nether|holland|dutch", title_regex=r"nether|holland|dutch")
-    log("  후보:", json.dumps(cands[:12], ensure_ascii=False))
-    c = pick(cands, r"nominal", r"nether|holland|dutch")
-    if not c:
-        raise RuntimeError("Schmelzing 자료에서 네덜란드 열을 찾지 못함")
-    log(f"  선택: 시트={c['sheet']} 열={c['col']} 헤더={c['header']}")
-    pts = excel_extract(wb, c["sheet"], c["col"])
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    ws = next((w for w in wb.worksheets if re.search(r"country level", w.title, re.I)), None)
+    if ws is None:
+        raise RuntimeError("국가별 시트를 찾지 못함: " + ", ".join(w.title for w in wb.worksheets))
+    head = list(ws.iter_rows(min_row=1, max_row=14, values_only=True))
+    ncol = max(len(r) for r in head)
+    for i, r in enumerate(head):
+        cells = [f"{c}:{str(v).strip()[:40]}" for c, v in enumerate(r) if isinstance(v, str) and v.strip()]
+        log(f"  머리글 행{i + 1}:", " / ".join(cells)[:700])
+    # 가로로 병합된 머리글을 오른쪽으로 채워서 열마다 설명 문구를 만든다
+    labels = [[] for _ in range(ncol)]
+    for r in head:
+        cur = None
+        for c in range(ncol):
+            v = r[c] if c < len(r) else None
+            if isinstance(v, str) and v.strip():
+                cur = v.strip()
+            elif v is not None:
+                cur = None
+            labels[c].append(cur)
+    cands = []
+    for c in range(1, ncol):
+        own = [r[c] for r in head if c < len(r) and isinstance(r[c], str)]
+        if any(re.search(r"holland|nether|dutch", x, re.I) for x in own):
+            cands.append((c, " | ".join(x for x in labels[c] if x)))
+    for c, t in cands:
+        log(f"  후보 열 {c}: {t[:200]}")
+    pick_ = next((x for x in cands if re.search(r"nominal", x[1], re.I) and not re.search(r"real", x[1], re.I)), None)
+    if pick_ is None:
+        pick_ = next((x for x in cands if re.search(r"nominal", x[1], re.I)), None)
+    if pick_ is None:
+        raise RuntimeError("네덜란드 명목금리 열을 확정하지 못함 (위 머리글 로그를 확인)")
+    c, t = pick_
+    log(f"  선택: 시트={ws.title} 열={c} 설명={t[:160]}")
+    pts = excel_extract(wb, ws.title, c)
     if not pts:
-        raise RuntimeError("네덜란드 열에서 값을 읽지 못함")
-    return pts, f"시트 '{c['sheet']}' / 열 '{c['header'][:60]}'"
+        raise RuntimeError("선택한 네덜란드 열에서 값을 읽지 못함")
+    return pts, f"시트 '{ws.title}' / 열 {c}: {t[:80]}"
 
 
 # ---------------------------------------------------------------- 지표 정의
@@ -429,11 +460,6 @@ SERIES = [
     S("gold_usd", "금 가격 (USD/온스, 월별)", "metals", "USD", gold_monthly, freq="monthly",
       source="datasets/gold-prices: 1833~1959 Timothy Green, 1960~ 세계은행 Commodity Markets(월 평균)",
       url="https://github.com/datasets/gold-prices", caution="일별이 아닌 월별 자료", order=1),
-    S("gold_gbp", "금 가격 (GBP/온스, 장기)", "metals", "GBP",
-      lambda: boe_series(r"gold", r"gold.*price", r"gold", title_regex=r"gold"), freq="annual",
-      source="영국은행 'A Millennium of Macroeconomic Data for the UK'",
-      url="https://www.bankofengland.co.uk/statistics/research-datasets",
-      caution="엑셀 열 자동 탐색 방식 - 단위·시작연도를 원본과 대조해 주세요", order=2),
     S("wti", "WTI 원유 (USD/배럴)", "metals", "USD", lambda: fred("DCOILWTICO"),
       source="FRED DCOILWTICO (미 에너지정보청), 일별 1986~", url=FRED_URL + "DCOILWTICO", order=3),
     # 암호화폐
