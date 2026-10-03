@@ -132,3 +132,9 @@ button { cursor: pointer; }
 .kl li span { display: block; margin-top: 4px; color: var(--muted); font-size: 12.5px; }
 .card .fld input[type=text] { width: 100%; margin-top: 4px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; color: var(--text); }
 .card .fld textarea { width: 100%; min-height: 160px; margin-top: 4px; padding: 8px 10px; resize: vertical; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; color: var(--text); }
+
+/* 임기·성향 범례 */
+.row .lgs { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 3px; }
+.row .lg { font-size: 10.5px; color: var(--axis, #9aa4b2); display: inline-flex; align-items: center; gap: 3px; }
+.row .lg i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+#pop a { color: inherit; text-decoration: underline; }
