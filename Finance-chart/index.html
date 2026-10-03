@@ -9,28 +9,29 @@
 </head>
 <body>
 <header id="top">
-  <button id="btnSide" class="icon only-narrow" title="지표 선택">☰ 지표</button>
-  <div class="brand">금융사 연표 <span>1600 →</span></div>
+  <button id="btnSide" class="icon only-narrow" data-i18n-title="지표 선택" title="지표 선택" data-i18n="☰ 지표">☰ 지표</button>
+  <div class="brand"><span data-i18n="금융사 연표" style="color:inherit;font:inherit">금융사 연표</span> <span>1600 →</span></div>
   <div class="ranges" id="ranges"></div>
   <div class="zoom">
-    <button id="zoomOut" title="축소">−</button>
-    <button id="zoomIn" title="확대">+</button>
+    <button id="zoomOut" data-i18n-title="축소" title="축소">−</button>
+    <button id="zoomIn" data-i18n-title="확대" title="확대">+</button>
   </div>
   <div class="spacer"></div>
-  <button id="btnKnow" class="icon">지식 노트</button>
-  <button id="btnNotes" class="icon">메모 목록</button>
-  <button id="btnTheme" class="icon" title="화면 색상 전환">테마</button>
-  <button id="btnAuth" class="icon primary">로그인</button>
+  <select id="lang" class="icon" title="Language"><option value="ko">한국어</option><option value="en">English</option><option value="zh">中文</option></select>
+  <button id="btnKnow" class="icon" data-i18n="지식 노트">지식 노트</button>
+  <button id="btnNotes" class="icon" data-i18n="메모 목록">메모 목록</button>
+  <button id="btnTheme" class="icon" data-i18n-title="화면 색상 전환" title="화면 색상 전환" data-i18n="테마">테마</button>
+  <button id="btnAuth" class="icon primary" data-i18n="로그인">로그인</button>
 </header>
 
 <div id="app">
   <aside id="side">
     <div class="side-h">
-      <input id="search" type="search" placeholder="지표 검색">
+      <input id="search" type="search" data-i18n-ph="지표 검색" placeholder="지표 검색">
     </div>
     <div id="series-list"></div>
     <div class="side-foot">
-      <div>출처가 다른 자료를 이어 붙이지 않고 지표별로 따로 보여줍니다. 각 지표의 ⓘ 에서 출처를 확인하세요.</div>
+      <div data-i18n="출처가 다른 자료를 이어 붙이지 않고 지표별로 따로 보여줍니다. 각 지표의 ⓘ 에서 출처를 확인하세요.">출처가 다른 자료를 이어 붙이지 않고 지표별로 따로 보여줍니다. 각 지표의 ⓘ 에서 출처를 확인하세요.</div>
       <div id="gen"></div>
     </div>
   </aside>
@@ -45,23 +46,24 @@
       <div id="empty"></div>
     </div>
     <div id="bar">
-      <label class="chk"><input type="checkbox" id="optRebase"> 시작=100 비교</label>
-      <label class="chk"><input type="checkbox" id="optLog"> 로그 눈금</label>
-      <label class="chk"><input type="checkbox" id="optEvents" checked> 역사 사건</label>
-      <label class="sel">메모 표시
+      <label class="chk"><input type="checkbox" id="optRebase"> <span data-i18n="시작=100 비교">시작=100 비교</span></label>
+      <label class="chk"><input type="checkbox" id="optLog"> <span data-i18n="로그 눈금">로그 눈금</span></label>
+      <label class="chk"><input type="checkbox" id="optEvents" checked> <span data-i18n="역사 사건">역사 사건</span></label>
+      <label class="sel"><span data-i18n="메모 표시">메모 표시</span>
         <select id="optNotes">
-          <option value="own">메모별 설정</option>
-          <option value="dot">모두 점으로</option>
-          <option value="label">모두 글씨로</option>
+          <option value="own" data-i18n="메모별 설정">메모별 설정</option>
+          <option value="dot" data-i18n="모두 점으로">모두 점으로</option>
+          <option value="label" data-i18n="모두 글씨로">모두 글씨로</option>
         </select>
       </label>
-      <span class="hint">휠: 확대/축소 · 드래그: 이동 · 클릭: 메모 추가</span>
+      <span class="hint" data-i18n="휠: 확대/축소 · 드래그: 이동 · 클릭: 메모 추가">휠: 확대/축소 · 드래그: 이동 · 클릭: 메모 추가</span>
     </div>
   </main>
 </div>
 
 <div id="modal" hidden></div>
 
+<script src="i18n.js"></script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
