@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T10:59:42+00:00",
+ "generated": "2026-10-03T11:12:51+00:00",
  "end": "2026-10-02",
  "series": [
   {
@@ -265,6 +265,25 @@
    "start": "1947-01-01",
    "end": "2026-08-01",
    "n": 955,
+   "updated": "2026-10-03",
+   "detail": null
+  },
+  {
+   "id": "kr_cpi",
+   "name": "한국 소비자물가지수 (CPI, 총지수)",
+   "group": "macro",
+   "unit": "index",
+   "kind": "line",
+   "freq": "monthly",
+   "source": "한국은행 ECOS 901Y009 / 0 (소비자물가지수 총지수, 통계청 작성), 월별 1965~",
+   "url": "https://ecos.bok.or.kr/",
+   "caution": "통계표·항목 코드(901Y009/0)와 기준연도(2020=100 추정)는 첫 수집 결과로 검증 필요",
+   "hidden": false,
+   "order": 2,
+   "status": "ok",
+   "start": "1965-01-01",
+   "end": "2026-08-01",
+   "n": 740,
    "updated": "2026-10-03",
    "detail": null
   },
