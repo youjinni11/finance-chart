@@ -15,7 +15,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const PALETTE = ['#4ea8de', '#f4a261', '#2ec4b6', '#e76f51', '#b794f4', '#e9c46a', '#80ed99', '#ff6b9d', '#90be6d', '#c77dff', '#48cae4', '#ffb703', '#adb5bd', '#fb8500', '#06d6a0', '#ef476f'];
 const GROUPS = [['rates', tr('금리')], ['metals', tr('금 · 원자재')], ['crypto', tr('암호화폐')], ['fx', tr('환율')], ['stock', tr('주가지수')], ['macro', tr('물가 · 거시')]];
 const CUR = { USD: [tr('달러'), '$'], KRW: [tr('원'), '₩'], JPY: [tr('엔'), '¥'], CNY: [tr('위안'), 'CN¥'], EUR: [tr('유로'), '€'], GBP: [tr('파운드'), '£'] };
-const FREQ = { daily: tr('일별'), monthly: tr('월별'), annual: tr('연 단위'), mixed: tr('연·일 혼합') };
+const FREQ = { daily: tr('일별'), monthly: tr('월별'), annual: tr('연 단위'), quarterly: tr('분기별'), mixed: tr('연·일 혼합') };
 const RANGES = [[tr('최대'), 'max'], [tr('100년'), 100], [tr('50년'), 50], [tr('10년'), 10], [tr('5년'), 5], [tr('1년'), 1], [tr('6개월'), 0.5], [tr('1개월'), 1 / 12], [tr('맞춤'), 'fit']];
 
 function lsGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
