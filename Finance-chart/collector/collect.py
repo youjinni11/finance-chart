@@ -161,6 +161,17 @@ def _fred_convert(pts, invert):
     return out
 
 
+def fred_target(side):
+    """연준 FOMC 목표금리. 2008-12-15 이전은 단일 목표(DFEDTAR), 이후는 범위의 상단(DFEDTARU)/하단(DFEDTARL).
+    2008-12-16 이전에는 상단=하단=단일 목표로 같은 값을 쓴다."""
+    old = fred("DFEDTAR")
+    new = fred("DFEDTARU" if side == "upper" else "DFEDTARL")
+    if not new:
+        raise SkipSource("FRED 목표금리 범위 자료가 비어 있음")
+    cut = min(d for d, _ in new)
+    return [(d, v) for d, v in old if d < cut] + list(new)
+
+
 def ecos_base_rate():
     key = os.environ.get("ECOS_API_KEY")
     if not key:
@@ -602,8 +613,15 @@ def S(id, name, group, unit, fn, *, kind="line", freq="daily", source, url, caut
 FRED_URL = "https://fred.stlouisfed.org/series/"
 SERIES = [
     # 금리
-    S("fed_funds", "미국 연방기금금리 (연준)", "rates", "%", lambda: fred("DFF"), kind="step",
-      source="FRED(세인트루이스 연준) DFF - Effective Federal Funds Rate, 일별 1954~", url=FRED_URL + "DFF", order=1),
+    S("fed_funds", "미국 실효 연방기금금리 (EFFR, 실제 거래금리)", "rates", "%", lambda: fred("DFF"), kind="step",
+      source="FRED(세인트루이스 연준) DFF - Federal Funds Effective Rate, 일별 1954~. 은행끼리 하룻밤 빌려주는 실제 거래금리(연준이사회 산출). FOMC가 발표하는 목표금리가 아님",
+      url=FRED_URL + "DFF", caution="FOMC 결정 금리(목표)가 아니라 시장에서 실제 거래된 금리. FOMC 결정선은 '연준 목표금리 상단/하단'을 겹쳐 보세요", order=1),
+    S("fed_target_upper", "미국 연준 목표금리 상단 (FOMC 결정)", "rates", "%", lambda: fred_target("upper"), kind="step",
+      source="FRED DFEDTARU(2008-12-16~, 목표범위 상단) + DFEDTAR(1982-09-27~2008-12-15, 단일 목표) - 연준 FOMC 공표값",
+      url=FRED_URL + "DFEDTARU", caution="2008-12-15 이전에는 목표가 범위가 아닌 단일 값이라 상단·하단이 같은 값. 1982-09 이전에는 이 출처에 자료 없음", order=1.1),
+    S("fed_target_lower", "미국 연준 목표금리 하단 (FOMC 결정)", "rates", "%", lambda: fred_target("lower"), kind="step",
+      source="FRED DFEDTARL(2008-12-16~, 목표범위 하단) + DFEDTAR(1982-09-27~2008-12-15, 단일 목표) - 연준 FOMC 공표값",
+      url=FRED_URL + "DFEDTARL", caution="2008-12-15 이전에는 목표가 범위가 아닌 단일 값이라 상단·하단이 같은 값. 1982-09 이전에는 이 출처에 자료 없음", order=1.2),
     S("bok_base", "한국은행 기준금리", "rates", "%", ecos_base_rate, kind="step",
       source="한국은행 ECOS 722Y001 / 0101000 (기준금리), 1999.5~", url="https://ecos.bok.or.kr/",
       caution="1999년 5월 이전 자료는 이 출처에 없음", order=2),
