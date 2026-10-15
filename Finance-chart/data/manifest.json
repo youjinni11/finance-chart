@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-14T00:27:03+00:00",
+ "generated": "2026-10-15T00:01:33+00:00",
  "end": "2026-10-13",
  "series": [
   {
@@ -16,8 +16,8 @@
    "order": 1,
    "status": "ok",
    "start": "1954-07-01",
-   "end": "2026-10-12",
-   "n": 26402,
+   "end": "2026-10-13",
+   "n": 26403,
    "updated": "2026-10-14",
    "detail": null
   },
@@ -92,8 +92,8 @@
    "order": 3,
    "status": "ok",
    "start": "1694-07-01",
-   "end": "2026-10-12",
-   "n": 13370,
+   "end": "2026-10-13",
+   "n": 13371,
    "updated": "2026-10-14",
    "detail": "시트 'A1. Headline series' / 열 'Financial markets | Bank Rate | A31. Interest rates | % end ' + 영국은행 IADB(IUDBEDR) 일별 1975~"
   },
@@ -130,8 +130,8 @@
    "order": 5,
    "status": "ok",
    "start": "1962-01-02",
-   "end": "2026-10-09",
-   "n": 16179,
+   "end": "2026-10-13",
+   "n": 16180,
    "updated": "2026-10-14",
    "detail": null
   },
@@ -358,8 +358,8 @@
    "order": 1,
    "status": "ok",
    "start": "1971-02-05",
-   "end": "2026-10-12",
-   "n": 14039,
+   "end": "2026-10-13",
+   "n": 14040,
    "updated": "2026-10-14",
    "detail": null
   },
@@ -415,8 +415,8 @@
    "order": 1,
    "status": "ok",
    "start": "1947-01-01",
-   "end": "2026-08-01",
-   "n": 955,
+   "end": "2026-09-01",
+   "n": 956,
    "updated": "2026-10-14",
    "detail": null
   },
