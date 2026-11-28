@@ -1,6 +1,6 @@
 {
- "generated": "2026-11-27T03:44:40+00:00",
- "end": "2026-11-26",
+ "generated": "2026-11-28T03:24:49+00:00",
+ "end": "2026-11-27",
  "series": [
   {
    "id": "fed_funds",
@@ -16,9 +16,9 @@
    "order": 1,
    "status": "ok",
    "start": "1954-07-01",
-   "end": "2026-11-24",
-   "n": 26445,
-   "updated": "2026-11-27",
+   "end": "2026-11-26",
+   "n": 26447,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -35,9 +35,9 @@
    "order": 1.1,
    "status": "ok",
    "start": "1982-09-27",
-   "end": "2026-11-26",
-   "n": 16132,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 16133,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -54,9 +54,9 @@
    "order": 1.2,
    "status": "ok",
    "start": "1982-09-27",
-   "end": "2026-11-26",
-   "n": 16132,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 16133,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -71,12 +71,11 @@
    "caution": "1999년 5월 이전 자료는 이 출처에 없음",
    "hidden": false,
    "order": 2,
-   "status": "stale",
-   "message": "ECOS 에서 기준금리를 가져오지 못함",
+   "status": "ok",
    "start": "1999-05-06",
-   "end": "2026-11-25",
-   "n": 10065,
-   "updated": "2026-11-26",
+   "end": "2026-11-26",
+   "n": 10066,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -93,10 +92,10 @@
    "order": 3,
    "status": "ok",
    "start": "1694-07-01",
-   "end": "2026-11-25",
-   "n": 13402,
-   "updated": "2026-11-27",
-   "detail": "시트 'A1. Headline series' / 열 'Financial markets | Bank Rate | A31. Interest rates | % end ' + 영국은행 IADB(IUDBEDR) 일별 1975~"
+   "end": "2016-07-01",
+   "n": 323,
+   "updated": "2026-11-28",
+   "detail": "시트 'A1. Headline series' / 열 'Financial markets | Bank Rate | A31. Interest rates | % end '"
   },
   {
    "id": "nl_gov_yield",
@@ -114,7 +113,7 @@
    "start": "1600-07-01",
    "end": "2018-07-01",
    "n": 413,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": "시트 'IV. Country level, 1310-2018' / 열 32: Nominal, not averaged | Holland"
   },
   {
@@ -131,9 +130,9 @@
    "order": 5,
    "status": "ok",
    "start": "1962-01-02",
-   "end": "2026-11-24",
-   "n": 16209,
-   "updated": "2026-11-27",
+   "end": "2026-11-25",
+   "n": 16210,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -150,9 +149,9 @@
    "order": 6,
    "status": "ok",
    "start": "1999-01-01",
-   "end": "2026-11-26",
-   "n": 10192,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 10193,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -171,7 +170,7 @@
    "start": "1985-07-01",
    "end": "2026-10-01",
    "n": 496,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -190,7 +189,7 @@
    "start": "2013-10-25",
    "end": "2026-11-20",
    "n": 1540,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": "동방재부 데이터센터 RPTA_WEB_RATE / LPR1Y"
   },
   {
@@ -209,7 +208,7 @@
    "start": "2019-08-20",
    "end": "2026-11-20",
    "n": 88,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": "동방재부 데이터센터 RPTA_WEB_RATE / LPR5Y"
   },
   {
@@ -228,7 +227,7 @@
    "start": "1833-01-01",
    "end": "2026-10-01",
    "n": 2326,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -247,7 +246,7 @@
    "start": "1960-01-01",
    "end": "2026-10-01",
    "n": 802,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -266,7 +265,7 @@
    "start": "1986-01-02",
    "end": "2026-11-24",
    "n": 9552,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -283,9 +282,9 @@
    "order": 1,
    "status": "ok",
    "start": "2017-08-17",
-   "end": "2026-11-26",
-   "n": 3389,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 3390,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -302,9 +301,9 @@
    "order": 2,
    "status": "ok",
    "start": "2017-08-17",
-   "end": "2026-11-26",
-   "n": 3389,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 3390,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -321,9 +320,9 @@
    "order": 3,
    "status": "ok",
    "start": "2017-09-25",
-   "end": "2026-11-26",
-   "n": 3350,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 3351,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -340,9 +339,9 @@
    "order": 4,
    "status": "ok",
    "start": "2017-09-25",
-   "end": "2026-11-26",
-   "n": 3347,
-   "updated": "2026-11-27",
+   "end": "2026-11-27",
+   "n": 3348,
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -361,7 +360,7 @@
    "start": "1971-02-05",
    "end": "2026-11-25",
    "n": 14071,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -376,12 +375,11 @@
    "caution": "통계표 802Y001 은 항목 이름으로 자동 선택 - ECOS 일별 자료가 2003년부터라 그 이전(1996~2002)은 없음. 값은 한국거래소 자료와 대조 필요",
    "hidden": false,
    "order": 2,
-   "status": "stale",
-   "message": "요청 실패: HTTPSConnectionPool(host='ecos.bok.or.kr', port=443): Max retries exceeded with url: /api/StatisticItemList/***/json/kr/1/200/802Y001 (Caused by ConnectTimeoutError(<HTTPSConnection(host='ecos.bok.or.kr', port=443) at 0x7512678d6de0>, 'Connection to ecos.bok.or.kr timed out. (connect timeout=10)'))",
+   "status": "ok",
    "start": "2003-01-02",
-   "end": "2026-11-25",
-   "n": 5898,
-   "updated": "2026-11-26",
+   "end": "2026-11-27",
+   "n": 5900,
+   "updated": "2026-11-28",
    "detail": "통계표 802Y001 / 항목 0089000 (KOSDAQ지수)"
   },
   {
@@ -398,10 +396,10 @@
    "order": 3,
    "status": "ok",
    "start": "1990-12-19",
-   "end": "2026-11-26",
-   "n": 8772,
-   "updated": "2026-11-27",
-   "detail": "시나 재경(Sina Finance) sh000001 일봉 종가"
+   "end": "2026-11-27",
+   "n": 8773,
+   "updated": "2026-11-28",
+   "detail": "동방재부(Eastmoney) push2his.eastmoney.com 일봉 종가 000001"
   },
   {
    "id": "us_cpi",
@@ -419,7 +417,7 @@
    "start": "1947-01-01",
    "end": "2026-10-01",
    "n": 957,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -434,12 +432,11 @@
    "caution": "통계표·항목 코드(901Y009/0)와 기준연도(2020=100 추정)는 첫 수집 결과로 검증 필요",
    "hidden": false,
    "order": 2,
-   "status": "stale",
-   "message": "요청 실패: HTTPSConnectionPool(host='ecos.bok.or.kr', port=443): Max retries exceeded with url: /api/StatisticSearch/***/json/kr/1/10000/901Y009/M/196001/202611/0 (Caused by ConnectTimeoutError(<HTTPSConnection(host='ecos.bok.or.kr', port=443) at 0x7512679f3080>, 'Connection to ecos.bok.or.kr timed out. (connect timeout=10)'))",
+   "status": "ok",
    "start": "1965-01-01",
    "end": "2026-10-01",
    "n": 742,
-   "updated": "2026-11-26",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -458,7 +455,7 @@
    "start": "1970-01-01",
    "end": "2026-04-01",
    "n": 226,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -477,7 +474,7 @@
    "start": "1975-01-01",
    "end": "2026-04-01",
    "n": 206,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -496,7 +493,7 @@
    "start": "2005-04-01",
    "end": "2026-04-01",
    "n": 85,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -515,7 +512,7 @@
    "start": "1981-04-13",
    "end": "2026-11-20",
    "n": 11400,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -534,7 +531,7 @@
    "start": "1971-01-04",
    "end": "2026-11-20",
    "n": 14008,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -553,7 +550,7 @@
    "start": "1981-01-02",
    "end": "2026-11-20",
    "n": 11454,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -572,7 +569,7 @@
    "start": "1999-01-04",
    "end": "2026-11-20",
    "n": 6993,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   },
   {
@@ -591,7 +588,7 @@
    "start": "1971-01-04",
    "end": "2026-11-20",
    "n": 14014,
-   "updated": "2026-11-27",
+   "updated": "2026-11-28",
    "detail": null
   }
  ]
